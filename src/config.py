@@ -51,8 +51,8 @@ ELIXIR_START = 5.0
 
 # Elixir Calibration
 # Threshold for a single segment (1/10th of bar) to be considered "Active"
-# 0.5 means at least 50% of the segment must be purple.
-ELIXIR_SEGMENT_THRESHOLD = 0.5
+# 0.35 means at least 35% of the segment must be purple.
+ELIXIR_SEGMENT_THRESHOLD = 0.35
 
 # HSV Color Ranges for Purple Elixir
 # OpenCV HSV ranges: H: 0-179,# HSV Color Ranges

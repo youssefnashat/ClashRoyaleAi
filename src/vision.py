@@ -65,7 +65,7 @@ def get_user_elixir(frame):
             # User Request: First box needs to be "fully filled" to count.
             # It often shows 1 when empty due to noise/numbers.
             # So we use a stricter threshold for the first segment.
-            threshold = 0.85 if i == 0 else ELIXIR_SEGMENT_THRESHOLD
+            threshold = 0.75 if i == 0 else ELIXIR_SEGMENT_THRESHOLD
             
             if ratio >= threshold:
                 elixir_count += 1
