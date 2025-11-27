@@ -1,57 +1,108 @@
-# Clash Royale Match Analyzer
+# Clash Royale Elixir Tracker
 
-A real-time Python application that analyzes a running Clash Royale emulator window to track the opponent's Elixir and Card Cycle using Computer Vision.
+**Branch**: `elixi_tracker`
 
-## Features
-- **Elixir Tracking**:
-  - **User**: Estimates user elixir visually from the bottom bar.
-  - **Opponent**: Calculates opponent elixir based on generation rates (Single/Double Elixir) and card usage.
-- **Card Detection**: Uses Template Matching to detect when cards are played on the arena.
-- **Cycle Tracking**: Tracks the opponent's Hand, Deck, and Queue.
+This branch contains a **real-time elixir counter** for Clash Royale. It uses computer vision to detect and count your elixir bar with high accuracy.
+
+## What This Branch Does
+
+- ✅ **Captures** your game window (Android emulator)
+- ✅ **Detects** the purple elixir bar at the bottom of the screen
+- ✅ **Counts** elixir using a **10-segment detection** system (0-10)
+- ✅ **Displays** the current elixir count in real-time
 
 ## Prerequisites
-- **Emulator**: BlueStacks, LDPlayer, or similar running Clash Royale.
+
+- **Emulator**: Android emulator running Clash Royale
+  - Window must be named "Android Device" (MuMu Player, BlueStacks, etc.)
+  - **Portrait mode required** (e.g., 900x1600 resolution)
 - **Python 3.10+**
 
 ## Installation
 
-1.  **Clone/Download** this repository.
-2.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *Dependencies: `opencv-python`, `mss`, `numpy`, `pywin32`*
+1. **Clone/Download** this repository and switch to the `elixi_tracker` branch:
+   ```bash
+   git checkout elixi_tracker
+   ```
 
-## Configuration
-Check `src/config.py` to adjust settings:
-- `WINDOW_NAME_PATTERNS`: Add your emulator's window title if it's not detected (default: "BlueStacks", "LDPlayer", "Clash Royale").
-- `ELIXIR_BAR_ROI`: Region of Interest for the elixir bar.
-- `ARENA_ROI`: Region of Interest for the arena (card detection).
+2. **Create virtual environment**:
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate virtual environment**:
+   ```bash
+   # Windows PowerShell
+   .\venv\Scripts\Activate
+   
+   # Windows CMD
+   venv\Scripts\activate.bat
+   ```
+
+4. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
-### 1. Generate Card Assets
-Before the bot can detect cards, you need to create templates.
+1. **Start Clash Royale** in your emulator (must be in Portrait mode)
 
-1.  Run the asset capture tool:
-    ```bash
-    python tools/capture_assets.py
-    ```
-2.  When the emulator window is found, play a match or replay.
-3.  Press **'s'** to save a snapshot of the arena when a card is visible.
-4.  Images are saved to `assets/cards_raw/`.
-5.  **Manual Step**: Crop these images to just the card sprite and save them to `assets/cards/` as `.png` files (e.g., `hog_rider.png`).
+2. **Run the debug tool**:
+   ```bash
+   python tools/debug_elixir.py
+   ```
 
-### 2. Run the Analyzer
-1.  Start a match.
-2.  Run the main script:
-    ```bash
-    python main.py
-    ```
-3.  A dashboard will appear showing Elixir stats and the predicted opponent hand.
-4.  Press **'q'** to quit.
+3. **What you'll see**:
+   - **Main View**: Your game screen with a green box around the elixir bar
+   - **Vertical Lines**: 10 segments dividing the elixir bar (first segment is double-width)
+   - **Yellow Text**: Current elixir count (0-10)
+   - **Elixir Mask Window**: Purple pixel detection (white = detected)
+
+4. **Press 'q'** to quit
+
+## How It Works
+
+The elixir bar is divided into **11 equal units**:
+- **First box** = 2 units (represents 1 elixir, requires 75% fill)
+- **Other 9 boxes** = 1 unit each (requires 35% fill)
+
+Each box that passes the threshold adds 1 to the elixir count.
+
+## Configuration
+
+If the detection is inaccurate, check `src/config.py`:
+
+- **`ELIXIR_BAR_ROI`**: Coordinates of the elixir bar `(x, y, width, height)`
+  - Current: `(90, 810, 340, 20)`
+- **`PURPLE_LOWER` / `PURPLE_UPPER`**: HSV color range for purple detection
+  - Current: `(115, 30, 30)` to `(175, 255, 255)`
+- **`ELIXIR_SEGMENT_THRESHOLD`**: Minimum % of purple pixels to count as "filled"
+  - Current: `0.35` (35%)
 
 ## Troubleshooting
-- **Window Not Found**: Ensure the emulator is not minimized. Check `src/config.py` window titles.
-- **High DPI Issues**: The app attempts to handle High DPI automatically. If screenshots look zoomed in, check your Windows Display Scaling settings.
-- **Elixir Detection**: If "My Elixir" is inaccurate, verify the `ELIXIR_BAR_ROI` in `config.py` matches your screen resolution (the app resizes captures to 450px width).
+
+- **Window Not Found**: Ensure your emulator window is titled "Android Device"
+- **Stuck on 9**: Threshold may be too high, lower `ELIXIR_SEGMENT_THRESHOLD` in `config.py`
+- **Shows 1 when empty**: First segment threshold too low, increase the `0.75` value in `src/vision.py` line 68
+- **Landscape Warning**: Rotate your emulator to Portrait mode (9:16 aspect ratio)
+
+## Files in This Branch
+
+```
+src/
+├── __init__.py     # Python package marker (empty)
+├── capture.py      # Screen capture logic
+├── config.py       # Settings and thresholds
+└── vision.py       # Elixir detection algorithm
+
+tools/
+└── debug_elixir.py # Test/debug tool
+```
+
+## Next Steps
+
+This branch is complete and tested. For the full application:
+- **Card Detection**: See `feature/card-detection` branch
+- **Cycle Logic**: See `feature/cycle-logic` branch
+- **Integration**: These will be merged into `main`
