@@ -105,8 +105,6 @@ class WindowRecorder:
             return None
             
         print(f"\nStarting recording at {fps} FPS...")
-        print("Press 'q' to stop recording")
-        print("Press 's' to save a single frame")
         print("-" * 80)
         
         self.recording = True
@@ -135,29 +133,11 @@ class WindowRecorder:
             # Display the frame in popup window
             cv2.imshow(window_name, display_frame)
             
-            # Handle keyboard input
-            key = cv2.waitKey(int(1000 / fps)) & 0xFF
-            if key == ord('q'):
-                print(f"\nStopped recording. Captured {frame_count} frames.")
-                self.recording = False
-            elif key == ord('s'):
-                self.save_frame(frame, frame_count)
+            # Update display every frame (no keyboard input)
+            cv2.waitKey(int(1000 / fps))
         
         cv2.destroyAllWindows()
         return self.frames
-    
-    def save_frame(self, frame, frame_num):
-        """
-        Save a single frame as an image.
-        
-        Args:
-            frame (np.ndarray): Frame to save
-            frame_num (int): Frame number for filename
-        """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join(self.output_dir, f"frame_{timestamp}_{frame_num}.png")
-        cv2.imwrite(filename, frame)
-        print(f"Frame saved: {filename}")
     
     def save_video(self, filename=None):
         """
