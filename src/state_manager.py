@@ -72,7 +72,7 @@ CARD_COSTS = {
     'Skeleton Dragons': 4,
     'Mother Witch': 4,
     'Electro Spirit': 1,
-    'Electro Giant': 8,
+    'Electro Giant': 7,
     'Golden Knight': 4,
     'Archer Queen': 5,
     'Skeleton King': 4,

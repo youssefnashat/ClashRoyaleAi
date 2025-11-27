@@ -164,3 +164,9 @@ If you want to train your own model:
 3. Use at least 200-300 images per class
 4. Test with data augmentation
 5. Export as "Object Detection" model
+
+
+
+## TO DO:
+
+Add The other roboflow workflow that detects the cards. SPlit the hand into 4 differnert images and analyze each image then write the name of every card in the hand. WIth that info later on we can determine which cards to place based on the elxiir but for now just want a lis of the cards in the hand. 
