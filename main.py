@@ -1,83 +1,119 @@
 import cv2
 import time
-import os
 from src.capture import WindowCapture
-from src.vision import get_user_elixir, ElixirTracker
-from src.detector import CardDetector
-from src.tracker import OpponentState
-from src.config import RESIZE_WIDTH, RESIZE_HEIGHT
+from src.detector import RoboflowDetector
+from src.state_manager import StateManager
 
 def main():
-    print("Initializing Clash Royale Match Analyzer...")
+    """
+    Main application loop for Clash Royale AI
+    """
+    print("=" * 50)
+    print("Clash Royale AI - Roboflow Edition")
+    print("=" * 50)
+    print()
     
-    # Initialize Modules
+    # Initialize components
+    print("[1/3] Initializing window capture...")
     cap = WindowCapture()
-    elixir_tracker = ElixirTracker()
-    card_detector = CardDetector()
-    opponent_state = OpponentState()
     
-    print("Waiting for window...")
+    print("[2/3] Loading Roboflow model...")
+    try:
+        detector = RoboflowDetector()
+    except ValueError as e:
+        print(f"\n ERROR: {e}")
+        print("\nPlease:")
+        print("1. Copy .env.example to .env")
+        print("2. Add your ROBOFLOW_API_KEY from https://app.roboflow.com/settings/api")
+        print("3. Verify ROBOFLOW_MODEL_ID is correct (currently: clash-royale-xy2jw/2)")
+        return
+    
+    print("[3/3] Initializing state tracker...")
+    state = StateManager()
+    
+    # Wait for window
+    print("\nWaiting for game window...")
     while not cap.hwnd:
         cap.find_window()
         time.sleep(1)
-        
-    print("Window found! Starting loop...")
+    
+    print("Window found! Starting detection loop...")
+    print("Press 'q' to quit\n")
+    print("=" * 50)
+    
+    # Main loop
+    frame_count = 0
+    last_print = time.time()
     
     try:
         while True:
-            loop_start = time.time()
-            
-            # 1. Capture
+            # Capture frame
             frame = cap.get_screenshot()
             if frame is None:
-                print("Failed to capture frame.")
-                time.sleep(0.5)
+                time.sleep(0.1)
                 continue
-                
-            # 2. Vision (User Elixir)
-            user_elixir = get_user_elixir(frame)
             
-            # 3. Update Opponent Elixir (Time-based)
-            elixir_tracker.update()
+            # Run detection every frame
+            detections = detector.detect(frame)
             
-            # 4. Detect Cards
-            detected = card_detector.detect(frame)
-            for card in detected:
-                # Assume average cost of 4 for now if we don't have a cost DB
-                # Ideally, CardDetector should return (name, cost) or we look it up
-                cost = 4 
-                elixir_tracker.spend_elixir(cost)
-                opponent_state.on_card_played(card, cost)
-                print(f"!!! Opponent played {card} (Est. Elixir: {elixir_tracker.opponent_elixir:.1f})")
-
-            # 5. Display Dashboard (Console for now)
-            # We can also draw on the frame
-            display_frame = frame.copy()
+            # Update state
+            state.update(detections)
             
-            # Draw info
-            cv2.putText(display_frame, f"My Elixir: {user_elixir}", (10, 30), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
-            cv2.putText(display_frame, f"Opp Elixir: {elixir_tracker.opponent_elixir:.1f}", (10, 60), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            # Print dashboard every 2 seconds
+            now = time.time()
+            if now - last_print >= 2.0:
+                print_dashboard(state, detections, frame_count)
+                last_print = now
             
-            # Show Hand
-            hand_str = "Hand: " + ", ".join(opponent_state.hand)
-            cv2.putText(display_frame, hand_str, (10, 90), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-
-            cv2.imshow("Clash Royale Analyzer", display_frame)
+            frame_count += 1
             
-            # FPS Control
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-                
-            # Optional: limit FPS
-            # time.sleep(0.05) 
+            # Small delay to prevent 100% CPU usage
+            time.sleep(0.05)
+            
+            # Check for quit (this won't work without a cv2.imshow window)
+            # You could add a cv2.imshow here if you want visual feedback
             
     except KeyboardInterrupt:
-        print("Stopping...")
-    finally:
-        cv2.destroyAllWindows()
+        print("\n\nShutting down...")
+    
+
+def print_dashboard(state, detections, frame_count):
+    """Print a simple text dashboard"""
+    import os
+    
+    # Clear console (Windows)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
+    current_state = state.get_state()
+    
+    print("=" * 50)
+    print("CLASH ROYALE AI - ROBOFLOW EDITION")
+    print("=" * 50)
+    print()
+    print(f"Frame: {frame_count}")
+    print(f"Opponent Elixir: {current_state['elixir']:.1f} / 10.0")
+    print()
+    
+    print("--- ACTIVE DETECTIONS ---")
+    if detections:
+        for det in detections:
+            print(f"  • {det['class']} ({det['confidence']:.2f})")
+    else:
+        print("  (none)")
+    print()
+    
+    print("--- KNOWN OPPONENT CARDS ---")
+    if current_state['known_cards']:
+        print(f"  {len(current_state['known_cards'])}/8 cards discovered:")
+        for card in sorted(current_state['known_cards']):
+            print(f"  • {card}")
+    else:
+        print("  (none)")
+    print()
+    
+    print("Press Ctrl+C to quit")
+    print("=" * 50)
+
 
 if __name__ == "__main__":
     main()

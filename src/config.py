@@ -1,61 +1,14 @@
-# Configuration for Clash Royale Match Analyzer
+# Configuration for Clash Royale AI - Roboflow Edition
 
 # Window Capture Settings
-WINDOW_NAME_PATTERNS = ["Android Device"]
+WINDOW_NAME_PATTERNS = ["Android Device", "BlueStacks", "LDPlayer", "MuMu"]
 RESIZE_WIDTH = 450
-RESIZE_HEIGHT = 800  # Approximate aspect ratio, will be calculated dynamically if needed
+RESIZE_HEIGHT = 800
 
-# Region of Interest (ROI) Definitions
-# Format: (x, y, width, height) based on 450px width
-# These are placeholders and may need tuning based on the actual game layout on 450px width.
+# Detection Settings
+DETECTION_CONFIDENCE_THRESHOLD = 0.5  # Minimum confidence to consider a detection
+FPS_TARGET = 20  # Target frames per second for detection
 
-# Elixir Bar: Bottom area where the purple bar is
-# Assuming standard 9:16 aspect ratio, 450x800
-ELIXIR_BAR_ROI = (90, 810, 340, 20) 
-
-# Arena: Where cards are played (The main battlefield)
-ARENA_ROI = (20, 100, 410, 500)
-
-# Card Detection Settings
-MATCH_CONFIDENCE = 0.8
-DEBOUNCE_TIME = 3.0  # Seconds to ignore the same card
-
-# Elixir Logic
-# Configuration for Clash Royale Match Analyzer
-
-# Window Capture Settings
-WINDOW_NAME_PATTERNS = ["Android Device"]
-RESIZE_WIDTH = 450
-RESIZE_HEIGHT = 800  # Approximate aspect ratio, will be calculated dynamically if needed
-
-# Region of Interest (ROI) Definitions
-# Format: (x, y, width, height) based on 450px width
-# These are placeholders and may need tuning based on the actual game layout on 450px width.
-
-# Elixir Bar: Bottom area where the purple bar is
-# Assuming standard 9:16 aspect ratio, 450x800
-ELIXIR_BAR_ROI = (90, 810, 340, 20) 
-
-# Arena: Where cards are played (The main battlefield)
-ARENA_ROI = (20, 100, 410, 500)
-
-# Card Detection Settings
-MATCH_CONFIDENCE = 0.8
-DEBOUNCE_TIME = 3.0  # Seconds to ignore the same card
-
-# Elixir Logic
-ELIXIR_RECOVERY_RATE_SINGLE = 0.35  # Elixir per second
-ELIXIR_RECOVERY_RATE_DOUBLE = 0.7
-ELIXIR_MAX = 10.0
-ELIXIR_START = 5.0
-
-# Elixir Calibration
-# Threshold for a single segment (1/10th of bar) to be considered "Active"
-# 0.5 means at least 50% of the segment must be purple.
-ELIXIR_SEGMENT_THRESHOLD = 0.5
-
-# HSV Color Ranges for Purple Elixir
-# OpenCV HSV ranges: H: 0-179,# HSV Color Ranges
-# Purple (Elixir) - Widened range to catch gradients/glows
-PURPLE_LOWER = (115, 30, 30)
-PURPLE_UPPER = (175, 255, 255)
+# Roboflow Model (loaded from .env)
+# ROBOFLOW_API_KEY - from .env
+# ROBOFLOW_MODEL_ID - from .env (e.g., "clash-royale-xy2jw/2")

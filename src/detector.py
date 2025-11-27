@@ -1,64 +1,68 @@
-import cv2
-import numpy as np
 import os
-import time
-from .config import ARENA_ROI, MATCH_CONFIDENCE, DEBOUNCE_TIME
+from dotenv import load_dotenv
+from inference import get_model
 
-class CardDetector:
-    def __init__(self, assets_dir="assets/cards"):
-        self.templates = {}
-        self.last_seen = {} # {card_name: timestamp}
-        self.load_templates(assets_dir)
-
-    def load_templates(self, assets_dir):
-        if not os.path.exists(assets_dir):
-            print(f"Warning: Assets directory {assets_dir} not found.")
-            return
-
-        for filename in os.listdir(assets_dir):
-            if filename.endswith(".png"):
-                name = os.path.splitext(filename)[0]
-                path = os.path.join(assets_dir, filename)
-                img = cv2.imread(path)
-                if img is not None:
-                    self.templates[name] = img
-                else:
-                    print(f"Failed to load {filename}")
-
+class RoboflowDetector:
+    """
+    Wrapper for Roboflow inference API.
+    Detects Clash Royale troops and buildings using ML.
+    """
+    
+    def __init__(self):
+        """Initialize the Roboflow model with credentials from .env"""
+        load_dotenv()
+        
+        api_key = os.getenv("ROBOFLOW_API_KEY")
+        model_id = os.getenv("ROBOFLOW_MODEL_ID")
+        
+        if not api_key or not model_id:
+            raise ValueError(
+                "Missing required environment variables. "
+                "Please create a .env file with ROBOFLOW_API_KEY and ROBOFLOW_MODEL_ID"
+            )
+        
+        print(f"Loading Roboflow model: {model_id}")
+        self.model = get_model(model_id=model_id, api_key=api_key)
+        print("Model loaded successfully!")
+    
     def detect(self, frame):
         """
-        Scans the arena ROI for card templates.
-        Returns a list of detected card names.
-        """
-        detected_cards = []
-        if frame is None:
-            return detected_cards
-
-        x, y, w, h = ARENA_ROI
-        if y+h > frame.shape[0] or x+w > frame.shape[1]:
-            return detected_cards
-
-        roi = frame[y:y+h, x:x+w]
+        Run object detection on a frame.
         
-        now = time.time()
-
-        for name, template in self.templates.items():
-            # Check debounce
-            if name in self.last_seen:
-                if now - self.last_seen[name] < DEBOUNCE_TIME:
-                    continue
-
-            # Template Matching
-            # Ensure template is smaller than ROI
-            if template.shape[0] > roi.shape[0] or template.shape[1] > roi.shape[1]:
-                continue
-
-            res = cv2.matchTemplate(roi, template, cv2.TM_CCOEFF_NORMED)
-            _, max_val, _, _ = cv2.minMaxLoc(res)
-
-            if max_val > MATCH_CONFIDENCE:
-                detected_cards.append(name)
-                self.last_seen[name] = now
-                print(f"Detected {name} ({max_val:.2f})")
-
-        return detected_cards
+        Args:
+            frame (numpy.ndarray): BGR image from OpenCV/WindowCapture
+        
+        Returns:
+            list[dict]: Detected objects with format:
+                [
+                    {
+                        'class': 'Hog Rider',
+                        'confidence': 0.88,
+                        'box': [x, y, width, height]  # center coords + dimensions
+                    },
+                    ...
+                ]
+        """
+        if frame is None:
+            return []
+        
+        # Run inference
+        results = self.model.infer(frame)
+        
+        # Format results
+        detections = []
+        predictions = results.get('predictions', []) if isinstance(results, dict) else results
+        
+        for pred in predictions:
+            detections.append({
+                'class': pred.get('class', pred.get('class_name', 'Unknown')),
+                'confidence': float(pred.get('confidence', 0)),
+                'box': [
+                    float(pred.get('x', 0)),
+                    float(pred.get('y', 0)),
+                    float(pred.get('width', 0)),
+                    float(pred.get('height', 0))
+                ]
+            })
+        
+        return detections
