@@ -1,15 +1,17 @@
 import os
+import requests
+import base64
+import cv2
 from dotenv import load_dotenv
-from inference import get_model
 
 class RoboflowDetector:
     """
-    Wrapper for Roboflow inference API.
+    Wrapper for Roboflow HTTP API (compatible with Python 3.13+).
     Detects Clash Royale troops and buildings using ML.
     """
     
     def __init__(self):
-        """Initialize the Roboflow model with credentials from .env"""
+        """Initialize the Roboflow API with credentials from .env"""
         load_dotenv()
         
         api_key = os.getenv("ROBOFLOW_API_KEY")
@@ -21,13 +23,23 @@ class RoboflowDetector:
                 "Please create a .env file with ROBOFLOW_API_KEY and ROBOFLOW_MODEL_ID"
             )
         
-        print(f"Loading Roboflow model: {model_id}")
-        self.model = get_model(model_id=model_id, api_key=api_key)
-        print("Model loaded successfully!")
+        # Parse model ID (format: workspace/project/version)
+        parts = model_id.split('/')
+        if len(parts) != 2:
+            raise ValueError(f"Invalid MODEL_ID format. Expected 'project/version', got '{model_id}'")
+        
+        self.project_id = parts[0]
+        self.version = parts[1]
+        self.api_key = api_key
+        
+        # Build API endpoint
+        self.api_url = f"https://detect.roboflow.com/{self.project_id}/{self.version}"
+        
+        print(f"Roboflow HTTP API initialized: {model_id}")
     
     def detect(self, frame):
         """
-        Run object detection on a frame.
+        Run object detection on a frame using HTTP API.
         
         Args:
             frame (numpy.ndarray): BGR image from OpenCV/WindowCapture
@@ -46,16 +58,37 @@ class RoboflowDetector:
         if frame is None:
             return []
         
-        # Run inference
-        results = self.model.infer(frame)
+        # Encode frame to base64
+        _, buffer = cv2.imencode('.jpg', frame)
+        img_base64 = base64.b64encode(buffer).decode('utf-8')
+        
+        # Make API request
+        try:
+            response = requests.post(
+                self.api_url,
+                params={'api_key': self.api_key},
+                headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                data=img_base64,
+                timeout=5
+            )
+            
+            if response.status_code != 200:
+                print(f"API Error: {response.status_code} - {response.text}")
+                return []
+            
+            results = response.json()
+            
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+            return []
         
         # Format results
         detections = []
-        predictions = results.get('predictions', []) if isinstance(results, dict) else results
+        predictions = results.get('predictions', [])
         
         for pred in predictions:
             detections.append({
-                'class': pred.get('class', pred.get('class_name', 'Unknown')),
+                'class': pred.get('class', 'Unknown'),
                 'confidence': float(pred.get('confidence', 0)),
                 'box': [
                     float(pred.get('x', 0)),
