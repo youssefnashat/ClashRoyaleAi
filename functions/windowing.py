@@ -1,10 +1,10 @@
 """
 Windowing module for listing and selecting available windows.
 This module provides functionality to enumerate all visible windows
-and return the selected window handle for recording by the vision module.
+and return the selected window for recording by the vision module.
 """
 
-import win32gui
+import win32gui  # type: ignore
 
 
 def get_all_windows():

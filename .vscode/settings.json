@@ -1,0 +1,18 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "warning",
+        "reportMissingModuleSource": "warning"
+    },
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/functions"
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python"
+    }
+}
+
+

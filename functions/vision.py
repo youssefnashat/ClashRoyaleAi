@@ -7,8 +7,8 @@ and provides frame-by-frame analysis capabilities.
 import cv2
 import numpy as np
 import mss
-import win32gui
-import win32con
+import win32gui  # type: ignore
+import win32con  # type: ignore
 from datetime import datetime
 import os
 from windowing import list_and_select_window
@@ -35,6 +35,7 @@ class WindowRecorder:
         os.makedirs(output_dir, exist_ok=True)
         
         # Get window position and size
+        self.window_rect = {}
         self.update_window_rect()
     
     def update_window_rect(self):
@@ -99,6 +100,10 @@ class WindowRecorder:
         Args:
             fps (int): Frames per second for recording
         """
+        if not self.window_rect:
+            print("Error: Could not get window dimensions")
+            return None
+            
         print(f"\nStarting recording at {fps} FPS...")
         print("Press 'q' to stop recording")
         print("Press 's' to save a single frame")
@@ -106,7 +111,7 @@ class WindowRecorder:
         
         self.recording = True
         frame_count = 0
-        window_name = f"LIVE RECORDING - {self.window_rect['width']}x{self.window_rect['height']}"
+        window_name = f"LIVE RECORDING - {self.window_rect.get('width', 'unknown')}x{self.window_rect.get('height', 'unknown')}"
         
         # Create window
         cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
@@ -178,7 +183,7 @@ class WindowRecorder:
         height, width = self.frames[0].shape[:2]
         
         # Create video writer
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # type: ignore
         out = cv2.VideoWriter(output_path, fourcc, 30.0, (width, height))
         
         print(f"\nSaving video to {output_path}...")
