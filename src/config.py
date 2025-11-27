@@ -50,10 +50,9 @@ ELIXIR_MAX = 10.0
 ELIXIR_START = 5.0
 
 # Elixir Calibration
-# The bar might not be 100% solid purple (animations, numbers).
-# This value represents the % of purple pixels that equals 10 Elixir.
-# User observed 10 elixir = ~70% fill.
-ELIXIR_MAX_PIXEL_PERCENTAGE = 0.70
+# Threshold for a single segment (1/10th of bar) to be considered "Active"
+# 0.5 means at least 50% of the segment must be purple.
+ELIXIR_SEGMENT_THRESHOLD = 0.5
 
 # HSV Color Ranges for Purple Elixir
 # OpenCV HSV ranges: H: 0-179,# HSV Color Ranges

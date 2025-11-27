@@ -47,6 +47,18 @@ def debug_elixir_view():
         # Draw green box where we THINK the elixir is
         debug_frame = screenshot.copy()
         cv2.rectangle(debug_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        
+        # Draw segment lines (Uneven split: First is 2/11, others 1/11)
+        unit_width = w / 11.0
+        
+        # Draw line after first box (2 units)
+        sx = int(x + 2 * unit_width)
+        cv2.line(debug_frame, (sx, y), (sx, y+h), (0, 255, 0), 1)
+        
+        # Draw remaining 8 lines (starting from 3rd unit)
+        for i in range(1, 9):
+            sx = int(x + (2 + i) * unit_width)
+            cv2.line(debug_frame, (sx, y), (sx, y+h), (0, 255, 0), 1)
 
         # 2. Extract and Mask
         # Crop to the ROI

@@ -3,7 +3,7 @@ import numpy as np
 import time
 from .config import (
     ELIXIR_BAR_ROI, ELIXIR_RECOVERY_RATE_SINGLE, ELIXIR_RECOVERY_RATE_DOUBLE,
-    ELIXIR_MAX, ELIXIR_START, PURPLE_LOWER, PURPLE_UPPER, ELIXIR_MAX_PIXEL_PERCENTAGE
+    ELIXIR_MAX, ELIXIR_START, PURPLE_LOWER, PURPLE_UPPER, ELIXIR_SEGMENT_THRESHOLD
 )
 
 def get_user_elixir(frame):
@@ -31,28 +31,46 @@ def get_user_elixir(frame):
     # PURPLE_LOWER/UPPER are defined in config.py
     mask = cv2.inRange(hsv, PURPLE_LOWER, PURPLE_UPPER)
     
-    # 4. Count Purple Pixels
-    purple_pixels = cv2.countNonZero(mask)
-    total_pixels = w * h
+    # 5. Calculate Elixir using Segment Logic
+    # User Request: First box is double the length of the others.
+    # Total units = 2 (first) + 9 (others) = 11 units.
+    unit_width = w / 11.0
+    elixir_count = 0
     
-    if total_pixels == 0:
-        return 0.0
+    for i in range(10):
+        # Define segment boundaries
+        if i == 0:
+            start_x = 0
+            end_x = int(2 * unit_width)
+        else:
+            # i=1 starts at 2 units, i=2 starts at 3 units, etc.
+            start_x = int((2 + (i - 1)) * unit_width)
+            end_x = int((2 + i) * unit_width)
+            
+        # Clamp end_x to width to avoid rounding errors
+        if i == 9:
+            end_x = w
         
-    # 5. Calculate Elixir
-    # We assume the ROI perfectly encapsulates the fillable area of the bar.
-    raw_percentage = purple_pixels / total_pixels
-    
-    # Normalize based on calibration (0.7 fill = 10 elixir)
-    normalized_percentage = raw_percentage / ELIXIR_MAX_PIXEL_PERCENTAGE
-    
-    # Clamp to max 1.0 (cant have more than 10 elixir)
-    if normalized_percentage > 1.0:
-        normalized_percentage = 1.0
+        # Extract segment mask
+        segment_mask = mask[:, start_x:end_x]
         
-    # Map to 0-10 Integer
-    elixir = int(normalized_percentage * 10)
-    
-    return elixir
+        # Count pixels in this segment
+        seg_purple = cv2.countNonZero(segment_mask)
+        seg_w = end_x - start_x
+        seg_total = seg_w * h
+        
+        if seg_total > 0:
+            ratio = seg_purple / seg_total
+            
+            # User Request: First box needs to be "fully filled" to count.
+            # It often shows 1 when empty due to noise/numbers.
+            # So we use a stricter threshold for the first segment.
+            threshold = 0.85 if i == 0 else ELIXIR_SEGMENT_THRESHOLD
+            
+            if ratio >= threshold:
+                elixir_count += 1
+                
+    return elixir_count
 
 class ElixirTracker:
     """
