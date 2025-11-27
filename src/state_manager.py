@@ -185,17 +185,27 @@ class CardCycle:
                 self.hand.append(self.queue.popleft())
 
 
+# Objects to ignore (towers, non-playable cards)
+IGNORED_OBJECTS = {
+    'Princess Tower',
+    'King Tower',
+    'Crown Tower',
+    'King',
+    'Princess',  # Ambiguous - could be card or tower
+}
+
 class StateManager:
     """
     Main state manager combining elixir tracking and card cycle.
     """
     
-    def __init__(self):
+    def __init__(self, frame_height=800):
         self.elixir_tracker = ElixirTracker()
         self.card_cycle = CardCycle()
         self.last_seen_boxes = {}  # Track last seen positions to prevent duplicates
         self.duplicate_threshold = 50  # pixels
         self.debounce_time = 3.0  # seconds
+        self.frame_height = frame_height  # To determine enemy vs ally position
         
     def update(self, detections):
         """
@@ -213,11 +223,22 @@ class StateManager:
             card_name = det['class']
             box = det['box']
             
+            # FILTER 1: Ignore towers (not playable cards)
+            if card_name in IGNORED_OBJECTS:
+                continue
+            
+            # FILTER 2: Only track enemy troops (top half of screen)
+            # In Clash Royale, enemy side is top half (y < frame_height/2)
+            y_position = box[1]  # Center Y coordinate
+            if y_position > self.frame_height / 2:
+                # Bottom half = our troops, ignore
+                continue
+            
             # Check if this is a duplicate (same card, same position)
             if self._is_duplicate(card_name, box, now):
                 continue
             
-            # New card detected!
+            # New ENEMY card detected!
             cost = self.elixir_tracker.spend(card_name)
             self.card_cycle.add_card(card_name)
             
@@ -227,7 +248,7 @@ class StateManager:
                 'time': now
             }
             
-            print(f"[DETECTION] {card_name} (Cost: {cost}, Elixir: {self.elixir_tracker.elixir:.1f})")
+            print(f"[ENEMY DETECTION] {card_name} (Cost: {cost}, Elixir: {self.elixir_tracker.elixir:.1f})")
     
     def _is_duplicate(self, card_name, box, now):
         """Check if detection is a duplicate of a recent one"""
