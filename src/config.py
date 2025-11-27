@@ -11,7 +11,7 @@ RESIZE_HEIGHT = 800  # Approximate aspect ratio, will be calculated dynamically 
 
 # Elixir Bar: Bottom area where the purple bar is
 # Assuming standard 9:16 aspect ratio, 450x800
-ELIXIR_BAR_ROI = (100, 750, 250, 20) 
+ELIXIR_BAR_ROI = (90, 810, 340, 20) 
 
 # Arena: Where cards are played (The main battlefield)
 ARENA_ROI = (20, 100, 410, 500)
