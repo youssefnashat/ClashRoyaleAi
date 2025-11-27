@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import sys
 import os
+import time
 
 # Add the project root to path so we can import src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -18,12 +19,33 @@ def debug_elixir_view():
         cap.find_window()
         if not cap.hwnd:
             print("Waiting for window...")
-            cv2.waitKey(1000)
+            time.sleep(1)
 
     while True:
         screenshot = cap.get_screenshot()
         if screenshot is None:
             continue
+
+        # 1. Visualize the ROI (Draw a rectangle on the main screen)
+        # ROI is (x, y, w, h)
+        x, y, w, h = ELIXIR_BAR_ROI
+        
+        # Debug: Check bounds
+        fh, fw = screenshot.shape[:2]
+        if y + h > fh or x + w > fw:
+            print(f"\rWarning: ROI {ELIXIR_BAR_ROI} is out of bounds for frame {fw}x{fh}", end="")
+            # Draw red box to show where we tried to look
+            debug_frame = screenshot.copy()
+            # Draw visible part of ROI if possible, or just the frame border
+            cv2.rectangle(debug_frame, (0, 0), (fw-1, fh-1), (0, 0, 255), 5)
+            cv2.imshow("Main View (Green Box = ROI)", debug_frame)
+            if cv2.waitKey(1) == ord('q'): break
+            time.sleep(2) # Prevent spam
+            continue
+
+        # Draw green box where we THINK the elixir is
+        debug_frame = screenshot.copy()
+        cv2.rectangle(debug_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         # 2. Extract and Mask
         # Crop to the ROI
