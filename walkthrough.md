@@ -2,15 +2,37 @@
 
 ## Prerequisites
 - **Emulator**: BlueStacks, LDPlayer, or similar running Clash Royale.
-- **Python Environment**: Ensure dependencies are installed (`pip install -r requirements.txt` or via the provided venv).
-# 1. Create the virtual environment
-python -m venv venv
+- **Python Environment**: Ensure dependencies are installed.
 
-# 2. Activate it (PowerShell specific command)
-.\venv\Scripts\Activate
+### Initial Setup
 
-# 3. Install your libraries
-pip install opencv-python mss numpy pywin32
+1. **Create the virtual environment**:
+   ```powershell
+   python -m venv venv
+   ```
+
+2. **Activate it** (PowerShell specific command):
+   ```powershell
+   .\venv\Scripts\Activate
+   ```
+
+3. **Install your libraries**:
+   ```powershell
+   pip install -r requirements.txt
+   ```
+   Or manually install:
+   ```powershell
+   pip install opencv-python mss numpy pywin32
+   ```
+
+4. **Find Your Emulator Window** (Important!):
+   - Ensure your emulator is running with Clash Royale open.
+   - Run the window finder script:
+     ```powershell
+     .\venv\Scripts\python.exe find_window_names.py
+     ```
+   - Select your emulator window from the list.
+   - Update `src/config.py` with the window name pattern suggested by the script.
 
 ## Step 1: Asset Generation
 Before the bot can detect cards, it needs templates.

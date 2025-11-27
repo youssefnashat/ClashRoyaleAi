@@ -1,7 +1,7 @@
 # Configuration for Clash Royale Match Analyzer
 
 # Window Capture Settings
-WINDOW_NAME_PATTERNS = ["Android Device"]
+WINDOW_NAME_PATTERNS = ["CR-Bot"]
 RESIZE_WIDTH = 450
 RESIZE_HEIGHT = 800  # Approximate aspect ratio, will be calculated dynamically if needed
 
