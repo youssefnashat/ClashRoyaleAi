@@ -3,7 +3,7 @@ import numpy as np
 import time
 from .config import (
     ELIXIR_BAR_ROI, ELIXIR_RECOVERY_RATE_SINGLE, ELIXIR_RECOVERY_RATE_DOUBLE,
-    ELIXIR_MAX, ELIXIR_START, PURPLE_LOWER, PURPLE_UPPER
+    ELIXIR_MAX, ELIXIR_START, PURPLE_LOWER, PURPLE_UPPER, ELIXIR_MAX_PIXEL_PERCENTAGE
 )
 
 def get_user_elixir(frame):
@@ -40,12 +40,19 @@ def get_user_elixir(frame):
         
     # 5. Calculate Elixir
     # We assume the ROI perfectly encapsulates the fillable area of the bar.
-    percentage = purple_pixels / total_pixels
+    raw_percentage = purple_pixels / total_pixels
     
-    # Map 0-100% to 0-10 Elixir
-    elixir = percentage * 10.0
+    # Normalize based on calibration (0.7 fill = 10 elixir)
+    normalized_percentage = raw_percentage / ELIXIR_MAX_PIXEL_PERCENTAGE
     
-    return round(elixir, 1)
+    # Clamp to max 1.0 (cant have more than 10 elixir)
+    if normalized_percentage > 1.0:
+        normalized_percentage = 1.0
+        
+    # Map to 0-10 Integer
+    elixir = int(normalized_percentage * 10)
+    
+    return elixir
 
 class ElixirTracker:
     """

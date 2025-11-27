@@ -9,6 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.capture import WindowCapture
 from src.config import ELIXIR_BAR_ROI, PURPLE_LOWER, PURPLE_UPPER
+from src.vision import get_user_elixir
 
 def debug_elixir_view():
     cap = WindowCapture()
@@ -55,25 +56,23 @@ def debug_elixir_view():
             print("\rWarning: Empty ROI extracted", end="")
             continue
             
-        # Convert to HSV and Mask
+        # Convert to HSV and Mask (just for visualization)
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, np.array(PURPLE_LOWER), np.array(PURPLE_UPPER))
 
-        # 3. Calculate Value
-        pixel_count = cv2.countNonZero(mask)
-        total_pixels = w * h
-        if total_pixels > 0:
-            percentage = pixel_count / total_pixels
-        else:
-            percentage = 0
-            
-        elixir_val = percentage * 10  # Rough estimate logic
-
+        # 3. Calculate Value using the ACTUAL function
+        elixir_val = get_user_elixir(screenshot)
+        
         # 4. Display Everything
         cv2.imshow("Main View (Green Box = ROI)", debug_frame)
         cv2.imshow("Elixir Mask (White = Detected)", mask)
+        
+        # Add text to the debug frame
+        cv2.putText(debug_frame, f"Elixir: {elixir_val}", (50, 50), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+        cv2.imshow("Main View (Green Box = ROI)", debug_frame)
 
-        print(f"\rElixir Estimate: {elixir_val:.2f} | Pixels: {pixel_count}", end="")
+        print(f"\rElixir Estimate: {elixir_val}", end="")
 
         if cv2.waitKey(1) == ord('q'):
             break
