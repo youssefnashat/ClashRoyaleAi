@@ -71,6 +71,10 @@ def main():
         # Apply grid overlay
         display_frame = grid.draw_overlay(screenshot)
         
+        # Draw elixir bar ROI bounding box (green)
+        x, y, w, h = ELIXIR_BAR_ROI
+        cv2.rectangle(display_frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
+        
         # Add elixir info overlay
         cv2.putText(display_frame, f"Your Elixir: {elixir:.1f}", (10, 30),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
