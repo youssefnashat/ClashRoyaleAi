@@ -1,28 +1,31 @@
-# Clash Royale Elixir Tracker
+# Clash Royale Full Overlay
 
-**Branch**: `elixi_tracker`
+**Branch**: `full_overlay`
 
-This branch contains a **real-time elixir counter** for Clash Royale. It uses computer vision to detect and count your elixir bar with high accuracy.
+This branch combines **real-time elixir tracking** with **arena grid overlay** for Clash Royale. It uses computer vision to detect your elixir and displays an interactive 18×32 grid overlay on top of your game board.
 
 ## What This Branch Does
 
 - ✅ **Captures** your game window (Android emulator)
 - ✅ **Detects** the purple elixir bar at the bottom of the screen
 - ✅ **Counts** elixir using a **10-segment detection** system (0-10)
-- ✅ **Displays** the current elixir count in real-time
+- ✅ **Tracks** opponent elixir with estimated recovery rates
+- ✅ **Displays** a 18×32 grid overlay on the arena
+- ✅ **Shows** both your and opponent's elixir in real-time
 
 ## Prerequisites
 
 - **Emulator**: Android emulator running Clash Royale
   - Window must be named "Android Device" (MuMu Player, BlueStacks, etc.)
-  - **Portrait mode required** (e.g., 900x1600 resolution)
+  - **Portrait mode required** (900 by 1600 REQUIRED)
+  - Match or Training mode (elixir bar must be visible)
 - **Python 3.10+**
 
 ## Installation
 
-1. **Clone/Download** this repository and switch to the `elixi_tracker` branch:
+1. **Clone/Download** this repository and switch to the `full_overlay` branch:
    ```bash
-   git checkout elixi_tracker
+   git checkout full_overlay
    ```
 
 2. **Create virtual environment**:
@@ -46,39 +49,66 @@ This branch contains a **real-time elixir counter** for Clash Royale. It uses co
 
 ## Usage
 
-1. **Start Clash Royale** in your emulator (must be in Portrait mode)
+1. **Start Clash Royale** in your emulator (Portrait mode, in a match or training)
 
-2. **Run the debug tool**:
+2. **Run the main application**:
    ```bash
-   python tools/debug_elixir.py
+   python main.py
    ```
 
 3. **What you'll see**:
-   - **Main View**: Your game screen with a green box around the elixir bar
-   - **Vertical Lines**: 10 segments dividing the elixir bar (first segment is double-width)
-   - **Yellow Text**: Current elixir count (0-10)
-   - **Elixir Mask Window**: Purple pixel detection (white = detected)
+   - **Game Screen**: Your game window with overlays
+   - **Grid Overlay**: 18×32 translucent grid on the arena
+   - **Green Box**: Bounding box around the elixir bar at the bottom
+   - **Yellow Text**: Real-time elixir values
+     - "Your Elixir: X.X" (your current elixir)
+     - "Opponent Est: X.X" (estimated opponent elixir based on tracker)
+   - **Frame Counter**: Updates every 30 frames
 
 4. **Press 'q'** to quit
 
 ## How It Works
 
+### Elixir Tracking
 The elixir bar is divided into **11 equal units**:
 - **First box** = 2 units (represents 1 elixir, requires 75% fill)
 - **Other 9 boxes** = 1 unit each (requires 35% fill)
 
 Each box that passes the threshold adds 1 to the elixir count.
 
+### Opponent Elixir Estimation
+The opponent elixir tracker estimates elixir recovery based on time:
+- **Single Elixir**: Recovers at ~0.35 elixir per 30 frames
+- **Double Elixir**: Recovers at ~0.7 elixir per 30 frames
+
+### Grid Overlay
+The grid is a 18×32 tile overlay representing the Clash Royale arena. It is:
+- **Horizontally centered** on the screen
+- **Vertically compressed** (67% height) to fit gameplay area
+- **Semi-transparent** (33% opacity) to not obstruct gameplay
+- **Configurable** via `grid_config.json` and `shaded_tiles.json`
+
 ## Configuration
 
-If the detection is inaccurate, check `src/config.py`:
+### Elixir Detection (`src/config.py`)
 
 - **`ELIXIR_BAR_ROI`**: Coordinates of the elixir bar `(x, y, width, height)`
-  - Current: `(90, 810, 340, 20)`
+  - Current: `(90, 797, 340, 20)`
 - **`PURPLE_LOWER` / `PURPLE_UPPER`**: HSV color range for purple detection
   - Current: `(115, 30, 30)` to `(175, 255, 255)`
 - **`ELIXIR_SEGMENT_THRESHOLD`**: Minimum % of purple pixels to count as "filled"
   - Current: `0.35` (35%)
+
+### Grid Overlay (`grid_config.json`)
+
+- **`scale_x`**: Horizontal scaling factor (default: 0.85)
+- **`scale_y`**: Vertical scaling factor (default: 0.67)
+- **`offset_x`**: Horizontal offset (auto-centered, default: 0.0)
+- **`offset_y`**: Vertical offset in pixels (default: 88.0)
+
+### Tile States (`shaded_tiles.json`)
+
+Defines which tiles are shaded and their appearance in the overlay.
 
 ## Troubleshooting
 
@@ -91,13 +121,17 @@ If the detection is inaccurate, check `src/config.py`:
 
 ```
 src/
-├── __init__.py     # Python package marker (empty)
-├── capture.py      # Screen capture logic
-├── config.py       # Settings and thresholds
-└── vision.py       # Elixir detection algorithm
+├── __init__.py           # Python package marker
+├── capture.py            # Screen capture logic
+├── config.py             # Configuration and thresholds
+└── vision.py             # Elixir detection + grid overlay
 
-tools/
-└── debug_elixir.py # Test/debug tool
+main.py                    # Main application entry point
+grid_config.json           # Grid transformation settings
+shaded_tiles.json          # Tile state definitions
+requirements.txt           # Python dependencies
+README.md                  # This file
+walkthrough.md             # Step-by-step testing guide
 ```
 
 ## Next Steps

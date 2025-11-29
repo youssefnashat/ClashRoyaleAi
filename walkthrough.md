@@ -1,12 +1,13 @@
-# Elixir Tracker - Testing Walkthrough
+# Full Overlay - Testing Walkthrough
 
-This walkthrough shows you how to test the elixir counting feature step-by-step.
+This walkthrough shows you how to test the combined elixir tracking and grid overlay features step-by-step.
 
 ## Prerequisites
 
 - Android emulator running Clash Royale
-- Emulator in **Portrait mode** (e.g., 900x1600)
+- Emulator in **Portrait mode** (e.g., 450×827)
 - Window title is "Android Device"
+- **In a match or training mode** (elixir bar visible)
 
 ## Setup (First Time Only)
 
@@ -34,58 +35,73 @@ Or use the requirements file:
 pip install -r requirements.txt
 ```
 
-## Testing the Elixir Counter
+## Testing the Full Overlay
 
 ### 1. Start Clash Royale
 - Open your emulator
 - Launch Clash Royale
 - **Important**: Start a match or training mode so the elixir bar is visible
 
-### 2. Run the Debug Tool
+### 2. Run the Main Application
 ```bash
-python tools/debug_elixir.py
+python main.py
 ```
 
 ### 3. What You Should See
 
-**Two Windows Will Appear:**
+**One Window With Multiple Overlays:**
 
-1. **"Main View (Green Box = ROI)"**
-   - Shows your game screen
-   - Green rectangle around the elixir bar
-   - 10 vertical green lines dividing the bar into segments
-   - Yellow text showing current elixir count (e.g., "Elixir: 7")
+1. **Game Screen**
+   - Shows your game window
 
-2. **"Elixir Mask (White = Detected)"**
-   - Black and white mask
-   - White areas = purple pixels detected
-   - Should match the filled portion of your elixir bar
+2. **Grid Overlay**
+   - Semi-transparent 18×32 grid displayed on the arena
+   - Horizontally centered
+   - Vertically compressed to fit gameplay area
+
+3. **Green Bounding Box**
+   - Rectangle around the elixir bar at the bottom of the screen
+
+4. **Yellow Text Overlays** (top-left):
+   - `Your Elixir: X.X` - Your current elixir (0.0-10.0)
+   - `Opponent Est: X.X` - Estimated opponent elixir (0.0-10.0)
+   - `Frame XXX` - Frame counter (updates every 30 frames)
 
 ### 4. Verify Accuracy
 
-**Test these scenarios:**
+**Test Your Elixir Detection:**
 
 ✅ **Empty Elixir (0)**:
 - Use all your elixir in-game
-- Counter should show **0**
-- First segment should be mostly black in the mask
+- Counter should show **0.0** or **1.0** (depending on timing)
 
 ✅ **Half Full (5)**:
 - Wait for elixir to reach 5
-- Counter should show **5**
-- About half the bar should be white in the mask
+- Counter should show values in the **4.0-6.0** range
 
 ✅ **Full Elixir (10)**:
 - Wait for full elixir
-- Counter should show **10**
-- Entire bar should be white in the mask
+- Counter should show **10.0**
+- Should reach this and stay until you spend elixir
 
 ✅ **Incremental Counting**:
-- Watch the counter go **1 → 2 → 3 → 4...**
-- It should update smoothly as the bar fills
+- Watch the counter increment smoothly as the bar fills
+- May update a few times per second
+
+**Test Opponent Tracking:**
+
+✅ **Recovery Pattern**:
+- Watch "Opponent Est" value
+- It should increase over time (opponent elixir recovering)
+- Pattern should show logical recovery (0.7 per 30 frames in double elixir, 0.35 in single)
+
+✅ **Grid Overlay**:
+- Should be visible and not obscure gameplay
+- Grid lines should align reasonably with the arena
+- Should maintain aspect ratio and centering
 
 ### 5. Exit
-Press **'q'** to quit the debug tool.
+Press **'q'** in the OpenCV window to quit the application.
 
 ## Troubleshooting
 
