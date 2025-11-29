@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 from src.capture import WindowCapture
 from src.config import ELIXIR_BAR_ROI
 from src.vision import get_user_elixir, ElixirTracker, GridOverlay
+from src.events import GameEvents, apply_event_to_overlay
 
 
 def main():
@@ -48,11 +49,14 @@ def main():
     # Initialize grid overlay and elixir tracker
     grid = GridOverlay(frame_w, frame_h)
     tracker = ElixirTracker()
+    events = GameEvents()
     
     print("✓ Grid overlay initialized")
     print("✓ Elixir tracker initialized")
+    print("✓ Game events initialized")
     print("\n" + "-" * 80)
     print("Starting live overlay. Press 'q' to quit.")
+    events.print_help()
     print("-" * 80 + "\n")
     
     frame_count = 0
@@ -67,6 +71,9 @@ def main():
         
         # Update tracker
         tracker.update()
+        
+        # Apply event-based tile state updates to overlay
+        apply_event_to_overlay(grid, events)
         
         # Apply grid overlay
         display_frame = grid.draw_overlay(screenshot)
@@ -93,6 +100,13 @@ def main():
         if key == ord('q'):
             print("\nQuitting...")
             break
+        elif key != 255:  # 255 means no key pressed
+            char = chr(key)
+            if char.lower() == 'x':
+                events.reset_to_original()
+                print("✓ All tiles reset to original state")
+            else:
+                events.trigger_event(char)
     
     cv2.destroyAllWindows()
     print("Done!")

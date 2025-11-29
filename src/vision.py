@@ -115,7 +115,8 @@ class GridOverlay:
         'leftEnemyDown': (0, 255, 0),
         'rightEnemyDown': (255, 0, 0),
         'leftFriendlyDown': (0, 255, 255),
-        'rightFriendlyDown': (255, 0, 255)
+        'rightFriendlyDown': (255, 0, 255),
+        'empty': None  # Transparent, not drawn
     }
     
     def __init__(self, frame_width, frame_height):
@@ -206,6 +207,8 @@ class GridOverlay:
         
         # Draw shaded tiles
         for (tile_x, tile_y), state in self.tile_states.items():
+            if state == 'empty':  # Skip empty tiles - keep transparent
+                continue
             color = self.TILE_STATES.get(state, (0, 0, 255))
             x1 = int(offset_x + tile_x * scaled_tile_width)
             y1 = int(offset_y + tile_y * scaled_tile_height)
