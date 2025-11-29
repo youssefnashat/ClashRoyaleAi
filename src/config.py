@@ -3,38 +3,14 @@
 # Window Capture Settings
 WINDOW_NAME_PATTERNS = ["Android Device"]
 RESIZE_WIDTH = 450
-RESIZE_HEIGHT = 800  # Approximate aspect ratio, will be calculated dynamically if needed
+RESIZE_HEIGHT = 827  # Actual frame height from emulator
 
 # Region of Interest (ROI) Definitions
 # Format: (x, y, width, height) based on 450px width
-# These are placeholders and may need tuning based on the actual game layout on 450px width.
 
 # Elixir Bar: Bottom area where the purple bar is
-# Assuming standard 9:16 aspect ratio, 450x800
-ELIXIR_BAR_ROI = (90, 810, 340, 20) 
-
-# Arena: Where cards are played (The main battlefield)
-ARENA_ROI = (20, 100, 410, 500)
-
-# Card Detection Settings
-MATCH_CONFIDENCE = 0.8
-DEBOUNCE_TIME = 3.0  # Seconds to ignore the same card
-
-# Elixir Logic
-# Configuration for Clash Royale Match Analyzer
-
-# Window Capture Settings
-WINDOW_NAME_PATTERNS = ["Android Device"]
-RESIZE_WIDTH = 450
-RESIZE_HEIGHT = 800  # Approximate aspect ratio, will be calculated dynamically if needed
-
-# Region of Interest (ROI) Definitions
-# Format: (x, y, width, height) based on 450px width
-# These are placeholders and may need tuning based on the actual game layout on 450px width.
-
-# Elixir Bar: Bottom area where the purple bar is
-# Assuming standard 9:16 aspect ratio, 450x800
-ELIXIR_BAR_ROI = (90, 810, 340, 20) 
+# Adjusted for 450x827 resolution
+ELIXIR_BAR_ROI = (90, 797, 340, 20) 
 
 # Arena: Where cards are played (The main battlefield)
 ARENA_ROI = (20, 100, 410, 500)
@@ -55,7 +31,11 @@ ELIXIR_START = 5.0
 ELIXIR_SEGMENT_THRESHOLD = 0.35
 
 # HSV Color Ranges for Purple Elixir
-# OpenCV HSV ranges: H: 0-179,# HSV Color Ranges
+# OpenCV HSV ranges: H: 0-179, S: 0-255, V: 0-255
 # Purple (Elixir) - Widened range to catch gradients/glows
 PURPLE_LOWER = (115, 30, 30)
 PURPLE_UPPER = (175, 255, 255)
+
+# Grid Overlay Configuration
+GRID_CONFIG_FILE = "grid_config.json"
+SHADED_TILES_FILE = "shaded_tiles.json"
