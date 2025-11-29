@@ -136,30 +136,19 @@ class GridOverlay:
     def _validate_and_adjust_config(self):
         """Validate and adjust config for current frame dimensions."""
         scale_x = self.grid_config.get('scale_x', 0.85)
-        scale_y = self.grid_config.get('scale_y', 0.85)
+        scale_y = self.grid_config.get('scale_y', 0.67)
         
-        # Calculate what the centered offsets should be for this scale
+        # Calculate centered X offset based on scale_x only
         grid_width = self.tile_width * self.GRID_WIDTH * scale_x
-        grid_height = self.tile_height * self.GRID_HEIGHT * scale_y
-        
         centered_offset_x = (self.frame_width - grid_width) / 2.0
-        centered_offset_y = (self.frame_height - grid_height) / 2.0
         
-        # Update offsets to be centered (or use custom if they fit)
-        current_offset_x = self.grid_config.get('offset_x', 0.0)
+        # Keep the custom Y offset if provided, otherwise center
         current_offset_y = self.grid_config.get('offset_y', 0.0)
         
-        # If offsets would place grid out of bounds, recenter
-        if (current_offset_x + grid_width > self.frame_width or 
-            current_offset_y + grid_height > self.frame_height or
-            current_offset_x < 0 or current_offset_y < 0):
-            print(f"Grid config out of bounds for {self.frame_width}x{self.frame_height}, recentering...")
-            self.grid_config['offset_x'] = centered_offset_x
-            self.grid_config['offset_y'] = centered_offset_y
-        else:
-            # Keep custom offsets but use centered as baseline
-            self.grid_config['offset_x'] = current_offset_x
-            self.grid_config['offset_y'] = current_offset_y
+        # Always center horizontally
+        self.grid_config['offset_x'] = centered_offset_x
+        # Keep Y offset as specified (allows vertical translation)
+        self.grid_config['offset_y'] = current_offset_y
     
     def _load_grid_config(self):
         """Load grid scale and offset from grid_config.json."""
