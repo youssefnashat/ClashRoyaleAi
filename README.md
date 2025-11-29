@@ -1,6 +1,6 @@
 # Clash Royale Match Analyzer
 
-A Python-based tool for recording and analyzing Clash Royale matches from an Android emulator.
+A Python-based tool for recording and analyzing Clash Royale matches from an Android emulator with an interactive 18×32 tile grid overlay.
 
 ## Quick Start
 
@@ -43,41 +43,69 @@ Simply activate the virtual environment:
 ```
 ClashRoyaleAi/
 ├── functions/
-│   ├── windowing.py      # Window selection and enumeration
-│   ├── vision.py         # Window recording and frame capture
-│   ├── elixir/          # Elixir tracking modules
-│   ├── tiles/           # Tile detection modules
-│   └── units/           # Unit detection modules
-├── recordings/          # Saved video recordings
-├── .vscode/            # VS Code settings
-├── requirements.txt    # Python dependencies
-├── README.md          # This file
-└── DEPENDENCIES.txt   # Detailed dependency information
+│   ├── vision.py         # Main: Window recording with grid overlay (includes windowing)
+│   ├── tiles.py          # Optional: Interactive tile grid editor
+│   ├── __init__.py       # Package initialization
+│   └── __pycache__/      # Compiled Python bytecode (auto-generated)
+├── recordings/           # Saved video recordings
+├── grid_config.json      # Saved grid scale and offset settings
+├── shaded_tiles.json     # Saved tile state definitions
+├── .gitignore           # Git ignore rules
+├── requirements.txt     # Python dependencies
+├── README.md            # This file
+└── .venv/              # Virtual environment (auto-created)
 ```
 
 ## Usage
 
-### Record a Window
+### Record a Window with Grid Overlay
 
-To select a window and start recording:
+To select a window and start recording with the grid overlay:
 
 ```powershell
 python functions/vision.py
 ```
 
-**Controls:**
-- Number input to select window
+**Features:**
+- Automatically lists all visible windows
+- Number input to select which window to record
+- Loads saved grid configuration (scale, offset) from `grid_config.json`
+- Displays 18×32 tile grid overlay with saved tile state colors
 - `q` - Stop recording
-- `s` - Save current frame as image
-- When done recording, choose to save as MP4 video
+- Option to save recording as MP4 video
+- Recordings saved with overlay applied
 
-### Select Window Only
+### Grid Configuration
 
-To just list and select windows without recording:
+The grid configuration is stored in JSON files:
+
+- **`grid_config.json`** - Grid scale and position
+  ```json
+  {
+    "scale_x": 0.85,
+    "scale_y": 0.85,
+    "offset_x": 62.925,
+    "offset_y": 162.945
+  }
+  ```
+
+- **`shaded_tiles.json`** - Tile state definitions and colors
+  - Tiles can be in states: `red`, `leftEnemyDown`, `rightEnemyDown`, `leftFriendlyDown`, `rightFriendlyDown`
+  - Persist between recording sessions
+
+### Interactive Tile Editor (Optional)
+
+To interactively edit tile states:
 
 ```powershell
-python functions/windowing.py
+python functions/tiles.py
 ```
+
+**Controls:**
+- **LEFT CLICK** - Cycle tile through states
+- **RIGHT CLICK** - Clear tile
+- **'c'** - Clear all tiles
+- **ESC** - Exit and save
 
 ## Dependencies
 
@@ -87,8 +115,6 @@ All dependencies are specified in `requirements.txt`:
 - **mss** - Fast window/screen capture
 - **numpy** - Array operations
 - **pywin32** - Windows API integration for window management
-
-See `DEPENDENCIES.txt` for more details.
 
 ## Troubleshooting
 
@@ -102,6 +128,11 @@ See `DEPENDENCIES.txt` for more details.
 ### "Handle is invalid" warning during recording
 - This is non-critical and recording will continue normally
 
+### Grid overlay not appearing
+- Check that `grid_config.json` exists in the project root
+- Check that `shaded_tiles.json` exists for tile definitions
+- Both files should be auto-created after first interactive grid adjustment
+
 ### VS Code says imports can't be resolved
 - Restart VS Code after installing packages
 - Check that Python interpreter is set to `./.venv/Scripts/python.exe`
@@ -111,12 +142,11 @@ See `DEPENDENCIES.txt` for more details.
 To add new dependencies:
 
 1. Install with pip: `pip install package-name`
-2. Add to `requirements.txt` with version: `pip freeze | grep package-name >> requirements.txt`
-3. Update `DEPENDENCIES.txt` with description
+2. Update `requirements.txt`: `pip freeze > requirements.txt`
 
-## Contributing
+## Notes
 
-Before committing changes:
-- Ensure virtual environment is activated
-- Test your changes
-- Update README or DEPENDENCIES if adding new requirements
+- The grid overlay is semi-transparent (33% opacity) to allow seeing the underlying content
+- Grid is always centered and scaled to 85% by default to prevent distortion
+- All grid settings persist between recording sessions via JSON files
+- The `tiles.py` module is optional; `vision.py` works independently using only JSON data
