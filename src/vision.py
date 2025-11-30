@@ -165,9 +165,16 @@ class GridOverlay:
                 with open(self.DISPLAY_CONFIG_FILE, 'r') as f:
                     config_data = json.load(f)
                     grid_config = config_data.get('grid', {})
-                    return grid_config if 'scale_x' in grid_config else default_config
-            except:
+                    if 'scale_x' in grid_config:
+                        print(f"[INIT] Loaded grid config from {self.DISPLAY_CONFIG_FILE}")
+                        return grid_config
+                    print(f"[INIT] No grid config in {self.DISPLAY_CONFIG_FILE}, using defaults")
+                    return default_config
+            except Exception as e:
+                print(f"[INIT] Error loading {self.DISPLAY_CONFIG_FILE}: {e}, using defaults")
                 return default_config
+        else:
+            print(f"[INIT] {self.DISPLAY_CONFIG_FILE} not found, using default config")
         return default_config
     
     def _load_tile_states(self):
@@ -180,9 +187,13 @@ class GridOverlay:
                     for key, value in data.items():
                         tile_tuple = tuple(map(int, key.split(',')))
                         states[tile_tuple] = value
+                    print(f"[INIT] Loaded {len(states)} tile states from {self.SHADED_TILES_FILE}")
                     return states
-            except:
+            except Exception as e:
+                print(f"[INIT] Error loading {self.SHADED_TILES_FILE}: {e}")
                 return {}
+        else:
+            print(f"[INIT] {self.SHADED_TILES_FILE} not found, starting with empty tile states")
         return {}
     
     def draw_overlay(self, frame):

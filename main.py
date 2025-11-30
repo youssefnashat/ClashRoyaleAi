@@ -35,7 +35,7 @@ def main():
             print("Waiting for window 'Android Device'...")
             time.sleep(1)
     
-    print(f"✓ Found window: Android Device")
+    print(f"[OK] Found window: Android Device")
     
     # Get frame to initialize grid overlay
     screenshot = cap.get_screenshot()
@@ -44,16 +44,40 @@ def main():
         return
     
     frame_h, frame_w = screenshot.shape[:2]
-    print(f"✓ Frame size: {frame_w}x{frame_h}")
+    print(f"[OK] Frame size: {frame_w}x{frame_h}")
     
     # Initialize grid overlay and elixir tracker
     grid = GridOverlay(frame_w, frame_h)
     tracker = ElixirTracker()
     events = GameEvents()
     
-    print("✓ Grid overlay initialized")
-    print("✓ Elixir tracker initialized")
-    print("✓ Game events initialized")
+    print("[OK] Grid overlay initialized")
+    print("[OK] Elixir tracker initialized")
+    print("[OK] Game events initialized")
+    
+    # DEBUG: Verify grid configuration loaded from JSON
+    print("\n" + "=" * 80)
+    print("GRID INITIALIZATION VERIFICATION:")
+    print("=" * 80)
+    print("Grid Configuration (from display_config.json):")
+    print(f"  scale_x: {grid.grid_config.get('scale_x')}")
+    print(f"  scale_y: {grid.grid_config.get('scale_y')}")
+    print(f"  offset_x: {grid.grid_config.get('offset_x')}")
+    print(f"  offset_y: {grid.grid_config.get('offset_y')}")
+    
+    # Count tile states by type
+    tile_state_counts = {}
+    for tile_coord, tile_state_value in grid.tile_states.items():
+        tile_state_counts[tile_state_value] = tile_state_counts.get(tile_state_value, 0) + 1
+    
+    print(f"\nTile States Loaded from JSON (shaded_tiles.json):")
+    print(f"  Total tiles: {len(grid.tile_states)}")
+    print(f"  Breakdown:")
+    for state_name in ['red', 'leftEnemyDown', 'rightEnemyDown', 'leftFriendlyDown', 'rightFriendlyDown', 'empty']:
+        count = tile_state_counts.get(state_name, 0)
+        if count > 0:
+            print(f"    {state_name}: {count}")
+    print("=" * 80 + "\n")
     print("\n" + "-" * 80)
     print("Starting live overlay. Press 'q' to quit.")
     events.print_help()
@@ -108,7 +132,7 @@ def main():
             char = chr(key)
             if char.lower() == 'x':
                 events.reset_to_original()
-                print("✓ All tiles reset to original state")
+                print("[OK] All tiles reset to original state")
             else:
                 events.trigger_event(char)
     
