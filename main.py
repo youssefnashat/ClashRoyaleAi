@@ -5,115 +5,79 @@ from src.detector import RoboflowDetector
 from src.state_manager import StateManager
 
 def main():
-    """
-    Main application loop for Clash Royale AI
-    """
-    print("=" * 50)
-    print("Clash Royale AI - Roboflow Edition")
-    print("=" * 50)
-    print()
+    """Main application loop for tower detection with popup visualization"""
+    print("Initializing Clash Royale Princess Tower Detection...")
     
-    # Initialize components
-    print("[1/3] Initializing window capture...")
     cap = WindowCapture()
     
-    print("[2/3] Loading Roboflow model...")
     try:
         detector = RoboflowDetector()
     except ValueError as e:
-        print(f"\n ERROR: {e}")
-        print("\nPlease:")
-        print("1. Copy .env.example to .env")
-        print("2. Add your ROBOFLOW_API_KEY from https://app.roboflow.com/settings/api")
-        print("3. Verify ROBOFLOW_MODEL_ID is correct (currently: clash-royale-xy2jw/2)")
+        print(f"ERROR: {e}")
         return
     
-    print("[3/3] Initializing state tracker...")
     state = StateManager()
     
-    # Wait for window
-    print("\nWaiting for game window...")
+    print("Waiting for game window...")
     while not cap.hwnd:
         cap.find_window()
         time.sleep(1)
     
-    print("Window found! Starting detection loop...")
-    print("Press 'q' to quit\n")
-    print("=" * 50)
-    
-    # Main loop
-    frame_count = 0
-    last_print = time.time()
+    print("Window found! Tower detection started...")
     
     try:
         while True:
-            # Capture frame
             frame = cap.get_screenshot()
             if frame is None:
-                time.sleep(0.1)
                 continue
             
-            # Run detection every frame
             detections = detector.detect(frame)
-            
-            # Update state
             state.update(detections)
-            
-            # Print dashboard every 2 seconds
-            now = time.time()
-            if now - last_print >= 2.0:
-                print_dashboard(state, detections, frame_count)
-                last_print = now
-            
-            frame_count += 1
-            
-            # Small delay to prevent 100% CPU usage
-            time.sleep(0.05)
-            
-            # Check for quit (this won't work without a cv2.imshow window)
-            # You could add a cv2.imshow here if you want visual feedback
+            visualize_towers(frame, detections, state)
             
     except KeyboardInterrupt:
-        print("\n\nShutting down...")
-    
+        print("\nShutting down...")
+        cv2.destroyAllWindows()
 
-def print_dashboard(state, detections, frame_count):
-    """Print a simple text dashboard"""
-    import os
+
+def visualize_towers(frame, detections, state):
+    """Display frame with highlighted towers and their positions"""
+    display_frame = frame.copy()
     
-    # Clear console (Windows)
-    os.system('cls' if os.name == 'nt' else 'clear')
+    # Get tower positions from state
+    towers_by_pos = state.tower_tracker.get_towers_by_position()
     
-    current_state = state.get_state()
+    for det in detections:
+        tower_class = det['class'].lower()
+        
+        # Only draw boxes for actual towers
+        if 'princess' in tower_class and 'tower' in tower_class:
+            box = det['box']
+            x, y, width, height = box[0], box[1], box[2], box[3]
+            
+            x1 = int(x - width / 2)
+            y1 = int(y - height / 2)
+            x2 = int(x + width / 2)
+            y2 = int(y + height / 2)
+            
+            # Draw green box around tower
+            cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            
+            # Determine tower position based on coordinates
+            side = "Left" if x < 225 else "Right"
+            owner = "Enemy" if y < 400 else "Friendly"
+            
+            label = f"{side} {owner}"
+            cv2.putText(display_frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
     
-    print("=" * 50)
-    print("CLASH ROYALE AI - ROBOFLOW EDITION")
-    print("=" * 50)
-    print()
-    print(f"Frame: {frame_count}")
-    print(f"Opponent Elixir: {current_state['elixir']:.1f} / 10.0")
-    print()
+    cv2.imshow('Clash Royale - Tower Detection', display_frame)
     
-    print("--- ACTIVE DETECTIONS ---")
-    if detections:
-        for det in detections:
-            print(f"  • {det['class']} ({det['confidence']:.2f})")
-    else:
-        print("  (none)")
-    print()
-    
-    print("--- KNOWN OPPONENT CARDS ---")
-    if current_state['known_cards']:
-        print(f"  {len(current_state['known_cards'])}/8 cards discovered:")
-        for card in sorted(current_state['known_cards']):
-            print(f"  • {card}")
-    else:
-        print("  (none)")
-    print()
-    
-    print("Press Ctrl+C to quit")
-    print("=" * 50)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+        raise KeyboardInterrupt()
 
 
 if __name__ == "__main__":
     main()
+
+

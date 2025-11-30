@@ -1,15 +1,13 @@
-# Clash Royale AI - Roboflow Edition
+# Clash Royale AI - Princess Tower Detection
 
-**Branch**: `feature/card-detection`
+Real-time Clash Royale **princess tower detection** using **Roboflow Machine Learning** with visual popup window.
 
-Real-time Clash Royale detection using **Roboflow Machine Learning** instead of template matching.
+## Features
 
-## What This Does
-
-- ✅ **ML-powered detection** of troops, buildings, and spells
-- ✅ **Elixir tracking** (opponent elixir estimation)
-- ✅ **Card cycle tracking** (infers opponent deck and hand)
-- ✅ **Real-time dashboard** showing detections and game state
+-  **ML-powered detection** of princess towers (left/right, enemy/friendly)
+-  **Tower status tracking** (UP/DOWN states)
+-  **Real-time visualization** with bounding boxes and state display
+-  **Popup window** showing captured frame with detected towers
 
 ## Prerequisites
 
@@ -33,140 +31,58 @@ pip install -r requirements.txt
 
 ### 2. Configure API Keys
 
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Edit `.env` and add your credentials:
+1. Create `.env` file in the root directory:
    ```env
    ROBOFLOW_API_KEY=your_api_key_here
    ROBOFLOW_MODEL_ID=clash-royale-xy2jw/2
    ```
 
-   **Get your API key:**
-   - Go to [https://app.roboflow.com/settings/api](https://app.roboflow.com/settings/api)
-   - Copy your API key
-
-   **Model ID format:** `workspace/project/version`
+2. Get your API key from [https://app.roboflow.com/settings/api](https://app.roboflow.com/settings/api)
 
 ## Usage
 
 1. **Start Clash Royale** in your emulator (Portrait mode)
 
-2. **Run the application:**
+2. **Run the detection:**
    ```bash
    python main.py
    ```
 
-3. **What you'll see:**
-   ```
-   ==================================================
-   CLASH ROYALE AI - ROBOFLOW EDITION
-   ==================================================
+3. **What you''ll see:**
+   - A popup window showing the game screen
+   - Green bounding boxes around detected towers
+   - Tower state indicators at the top: `RE: LE: LF: RF:` (Right Enemy, Left Enemy, Left Friendly, Right Friendly)
+   - Each state shows `True` (DOWN) or `False` (UP)
 
-   Frame: 245
-   Opponent Elixir: 7.3 / 10.0
-
-   --- ACTIVE DETECTIONS ---
-     • Hog Rider (0.92)
-     • Knight (0.88)
-
-   --- KNOWN OPPONENT CARDS ---
-     4/8 cards discovered:
-     • Fireball
-     • Hog Rider
-     • Knight
-     • Musketeer
-
-   Press Ctrl+C to quit
-   ==================================================
-   ```
-
-4. **To stop:** Press `Ctrl+C`
+4. **To stop:** Press `Ctrl+C` in the terminal or `q` in the popup window
 
 ## How It Works
 
-### Detection Pipeline
 1. **Capture** - Grabs frames from the emulator window
-2. **Detect** - Runs Roboflow ML inference
-3. **Track** - Updates elixir and card cycle
-4. **Display** - Prints dashboard every 2 seconds
+2. **Detect** - Runs Roboflow ML inference on each frame
+3. **Track** - Maintains tower state (UP/DOWN)
+4. **Display** - Shows visualization with bounding boxes and states
 
-### Elixir Tracking
-- Starts at 5.0 elixir
-- Regenerates at 0.35/sec (0.70/sec in double elixir)
-- Deducts costs when cards are detected
-- Uses comprehensive card cost database
-
-### Duplicate Prevention
-- Tracks recently detected cards (position + time)
-- Prevents counting the same troop multiple times
-- 3-second debounce window
-- 50-pixel position threshold
-
-## Files
+## File Structure
 
 ```
 src/
-├── capture.py       # Window capture logic
-├── config.py        # Settings
-├── detector.py      # Roboflow ML wrapper
-└── state_manager.py # Elixir + cycle tracking
+ capture.py       # Window capture logic
+ detector.py      # Roboflow ML wrapper
+ state_manager.py # Tower state tracking
 
 main.py              # Main application
-.env                 # API credentials (create from .env.example)
+.env                 # API credentials
+requirements.txt     # Python dependencies
 ```
 
-## Configuration
+## Tower State Codes
 
-Edit `src/config.py`:
-- `WINDOW_NAME_PATTERNS` - Emulator window titles to search for
-- `DETECTION_CONFIDENCE_THRESHOLD` - Minimum confidence (default: 0.5)
-- `FPS_TARGET` - Target detection rate (default: 20 FPS)
+- **RE** = Right Enemy Tower
+- **LE** = Left Enemy Tower  
+- **LF** = Left Friendly Tower
+- **RF** = Right Friendly Tower
 
-Edit `src/state_manager.py`:
-- `ELIXIR_REGEN_SINGLE` - Normal elixir regeneration (default: 0.35/sec)
-- `duplicate_threshold` - Position similarity threshold (default: 50px)
-- `debounce_time` - Duplicate prevention window (default: 3.0sec)
-
-## Troubleshooting
-
-### "Missing required environment variables"
-- Make sure you created `.env` file (copy from `.env.example`)
-- Verify your API key is correct
-
-### "Window Not Found"
-- Ensure emulator is running and not minimized
-- Check window title matches `WINDOW_NAME_PATTERNS` in `config.py`
-
-### Low Accuracy
-- Increase `DETECTION_CONFIDENCE_THRESHOLD` in `config.py`
-- Check your Roboflow model's performance metrics
-- Ensure emulator is in Portrait mode with good quality
-
-### High CPU Usage
-- Decrease `FPS_TARGET` in `config.py`
-- Add delay in main loop (`time.sleep()`)
-
-## Next Steps
-
-- Train your own Roboflow model for better accuracy
-- Add visualization (draw bounding boxes on screen)
-- Implement double elixir mode detection
-- Add logging and metrics
-
-## Model Training Tips
-
-If you want to train your own model:
-1. Collect screenshots from matches
-2. Annotate troops/buildings/spells in Roboflow
-3. Use at least 200-300 images per class
-4. Test with data augmentation
-5. Export as "Object Detection" model
-
-
-
-## TO DO:
-
-Add The other roboflow workflow that detects the cards. SPlit the hand into 4 differnert images and analyze each image then write the name of every card in the hand. WIth that info later on we can determine which cards to place based on the elxiir but for now just want a lis of the cards in the hand. 
+State values:
+- `True` = Tower is DOWN (destroyed)
+- `False` = Tower is UP (active)
