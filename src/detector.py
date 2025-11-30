@@ -1,101 +1,107 @@
 import os
-import requests
-import base64
-import cv2
 from dotenv import load_dotenv
+from inference_sdk import InferenceHTTPClient
+from src.config import TROOP_MODEL_ID, CARD_MODEL_ID
 
 class RoboflowDetector:
     """
-    Wrapper for Roboflow HTTP API (compatible with Python 3.13+).
-    Detects Clash Royale troops and buildings using ML.
+    Wrapper for Roboflow Inference SDK.
+    Handles dual models: one for troops (arena) and one for cards (hand).
     """
     
     def __init__(self):
         """Initialize the Roboflow API with credentials from .env"""
         load_dotenv()
         
-        api_key = os.getenv("ROBOFLOW_API_KEY")
-        model_id = os.getenv("ROBOFLOW_MODEL_ID")
+        self.api_key = os.getenv("ROBOFLOW_API_KEY")
         
-        if not api_key or not model_id:
+        if not self.api_key:
             raise ValueError(
-                "Missing required environment variables. "
-                "Please create a .env file with ROBOFLOW_API_KEY and ROBOFLOW_MODEL_ID"
+                "Missing required environment variable ROBOFLOW_API_KEY. "
+                "Please create a .env file."
             )
         
-        # Parse model ID (format: workspace/project/version)
-        parts = model_id.split('/')
-        if len(parts) != 2:
-            raise ValueError(f"Invalid MODEL_ID format. Expected 'project/version', got '{model_id}'")
-        
-        self.project_id = parts[0]
-        self.version = parts[1]
-        self.api_key = api_key
-        
-        # Build API endpoint
-        self.api_url = f"https://detect.roboflow.com/{self.project_id}/{self.version}"
-        
-        print(f"Roboflow HTTP API initialized: {model_id}")
-    
-    def detect(self, frame):
-        """
-        Run object detection on a frame using HTTP API.
-        
-        Args:
-            frame (numpy.ndarray): BGR image from OpenCV/WindowCapture
-        
-        Returns:
-            list[dict]: Detected objects with format:
-                [
-                    {
-                        'class': 'Hog Rider',
-                        'confidence': 0.88,
-                        'box': [x, y, width, height]  # center coords + dimensions
-                    },
-                    ...
-                ]
-        """
-        if frame is None:
-            return []
-        
-        # Encode frame to base64
-        _, buffer = cv2.imencode('.jpg', frame)
-        img_base64 = base64.b64encode(buffer).decode('utf-8')
-        
-        # Make API request
         try:
-            response = requests.post(
-                self.api_url,
-                params={'api_key': self.api_key},
-                headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                data=img_base64,
-                timeout=5
+            self.client = InferenceHTTPClient(
+                api_url="https://detect.roboflow.com",
+                api_key=self.api_key
             )
+            print(f"Roboflow SDK initialized.")
+            print(f"Troop Model: {TROOP_MODEL_ID}")
+            print(f"Card Model: {CARD_MODEL_ID}")
             
-            if response.status_code != 200:
-                print(f"API Error: {response.status_code} - {response.text}")
-                return []
-            
-            results = response.json()
-            
-        except requests.RequestException as e:
-            print(f"Request failed: {e}")
+        except Exception as e:
+            print(f"Failed to initialize InferenceHTTPClient: {e}")
+            self.client = None
+
+    def detect_troops(self, frame):
+        """
+        Detect troops on the battlefield using TROOP_MODEL_ID.
+        """
+        if frame is None or self.client is None:
             return []
-        
-        # Format results
-        detections = []
-        predictions = results.get('predictions', [])
-        
-        for pred in predictions:
-            detections.append({
-                'class': pred.get('class', 'Unknown'),
-                'confidence': float(pred.get('confidence', 0)),
-                'box': [
-                    float(pred.get('x', 0)),
-                    float(pred.get('y', 0)),
-                    float(pred.get('width', 0)),
-                    float(pred.get('height', 0))
-                ]
-            })
-        
-        return detections
+            
+        try:
+            # inference_sdk returns a dict with 'predictions' list
+            result = self.client.infer(frame, model_id=TROOP_MODEL_ID)
+            
+            # Handle batch response (list) vs single response (dict)
+            if isinstance(result, list):
+                result = result[0]
+                
+            predictions = result.get('predictions', [])
+            
+            # Format to match previous API if needed, or just return predictions
+            # Previous API returned list of dicts with 'class', 'confidence', 'box'
+            # SDK returns 'class', 'confidence', 'x', 'y', 'width', 'height'
+            
+            detections = []
+            for pred in predictions:
+                detections.append({
+                    'class': pred.get('class', 'Unknown'),
+                    'confidence': float(pred.get('confidence', 0)),
+                    'box': [
+                        float(pred.get('x', 0)),
+                        float(pred.get('y', 0)),
+                        float(pred.get('width', 0)),
+                        float(pred.get('height', 0))
+                    ]
+                })
+            return detections
+            
+        except Exception as e:
+            print(f"Troop detection failed: {e}")
+            return []
+
+    def detect_hand_cards(self, frame):
+        """
+        Detect cards in the player's hand using CARD_MODEL_ID.
+        """
+        if frame is None or self.client is None:
+            return []
+            
+        try:
+            result = self.client.infer(frame, model_id=CARD_MODEL_ID)
+            
+            if isinstance(result, list):
+                result = result[0]
+                
+            predictions = result.get('predictions', [])
+            
+            detections = []
+            for pred in predictions:
+                detections.append({
+                    'class': pred.get('class', 'Unknown'),
+                    'confidence': float(pred.get('confidence', 0)),
+                    'box': [
+                        float(pred.get('x', 0)),
+                        float(pred.get('y', 0)),
+                        float(pred.get('width', 0)),
+                        float(pred.get('height', 0))
+                    ]
+                })
+            return detections
+            
+        except Exception as e:
+            print(f"Card detection failed: {e}")
+            return []
