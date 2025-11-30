@@ -35,7 +35,7 @@ def main():
             print("Waiting for window 'Android Device'...")
             time.sleep(1)
     
-    print(f"✓ Found window: Android Device")
+    print(f"[OK] Found window: Android Device")
     
     # Get frame to initialize grid overlay
     screenshot = cap.get_screenshot()
@@ -44,16 +44,16 @@ def main():
         return
     
     frame_h, frame_w = screenshot.shape[:2]
-    print(f"✓ Frame size: {frame_w}x{frame_h}")
+    print(f"[OK] Frame size: {frame_w}x{frame_h}")
     
     # Initialize grid overlay and elixir tracker
     grid = GridOverlay(frame_w, frame_h)
     tracker = ElixirTracker()
     events = GameEvents()
     
-    print("✓ Grid overlay initialized")
-    print("✓ Elixir tracker initialized")
-    print("✓ Game events initialized")
+    print("[OK] Grid overlay initialized")
+    print("[OK] Elixir tracker initialized")
+    print("[OK] Game events initialized")
     print("\n" + "-" * 80)
     print("Starting live overlay. Press 'q' to quit.")
     events.print_help()
@@ -108,7 +108,7 @@ def main():
             char = chr(key)
             if char.lower() == 'x':
                 events.reset_to_original()
-                print("✓ All tiles reset to original state")
+                print("[OK] All tiles reset to original state")
             else:
                 events.trigger_event(char)
     

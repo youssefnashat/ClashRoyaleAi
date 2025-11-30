@@ -106,7 +106,7 @@ class GridOverlay:
     
     GRID_WIDTH = 18
     GRID_HEIGHT = 32
-    GRID_CONFIG_FILE = "grid_config.json"
+    GRID_CONFIG_FILE = "display_config.json"
     SHADED_TILES_FILE = "shaded_tiles.json"
     
     # Tile states with BGR colors
@@ -151,19 +151,23 @@ class GridOverlay:
         self.grid_config['offset_y'] = current_offset_y
     
     def _load_grid_config(self):
-        """Load grid scale and offset from grid_config.json."""
+        """Load grid scale and offset from display_config.json."""
         default_config = {
             'scale_x': 0.85,
-            'scale_y': 0.85,
-            'offset_x': 0.0,
-            'offset_y': 0.0
+            'scale_y': 0.67,
+            'offset_x': 96.0,
+            'offset_y': 88.0
         }
         
         if os.path.exists(self.GRID_CONFIG_FILE):
             try:
                 with open(self.GRID_CONFIG_FILE, 'r') as f:
-                    config = json.load(f)
-                    return config if 'scale_x' in config else default_config
+                    config_data = json.load(f)
+                    # Check if it's the new format (nested under 'grid')
+                    if 'grid' in config_data:
+                        return config_data['grid']
+                    # Fallback for old format or direct keys
+                    return config_data if 'scale_x' in config_data else default_config
             except:
                 return default_config
         return default_config
