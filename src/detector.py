@@ -26,12 +26,6 @@ class RoboflowDetector:
         
         self.api_url_base = "https://detect.roboflow.com"
         self.tower_model_id = tower_model_id or os.getenv("ROBOFLOW_MODEL_ID")
-        
-        print(f"Roboflow HTTP API initialized.")
-        print(f"Troop Model: {TROOP_MODEL_ID}")
-        print(f"Card Model: {CARD_MODEL_ID}")
-        if self.tower_model_id:
-            print(f"Tower Model: {self.tower_model_id}")
 
     def _detect_with_model(self, frame, model_id):
         """

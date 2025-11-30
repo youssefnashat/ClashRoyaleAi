@@ -27,20 +27,16 @@ class ElixirDisplay:
         # Get elixir estimate
         elixir = get_user_elixir(screenshot)
         
-        # Draw elixir bar ROI bounding box (green)
+        # Draw elixir bar ROI bounding box (white)
         x, y, w, h = ELIXIR_BAR_ROI
-        cv2.rectangle(display_frame, (x + 4, y), (x + w + 4, y + h), (0, 255, 0), 3)
-        
-        # Display ROI coordinates for reference
-        cv2.putText(display_frame, f"ROI: ({x}, {y}, {w}, {h})", (x + 4, y - 5),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        cv2.rectangle(display_frame, (x + 4, y), (x + w + 4, y + h), (255, 255, 255), 3)
         
         # Add elixir info overlay at bottom fifth with black background
         frame_height = display_frame.shape[0]
         bottom_fifth_y = int(frame_height * 4 / 5)
         
         # Draw black background box for text
-        text = f"E = {elixir:.1f}"
+        text = f"E = {int(elixir)}"
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.7
         thickness = 2
@@ -52,8 +48,8 @@ class ElixirDisplay:
         cv2.rectangle(display_frame, (x_pos - 5, y_pos - text_size[1] - 5), 
                      (x_pos + text_size[0] + 5, y_pos + 5), (0, 0, 0), -1)
         
-        # Draw green text
+        # Draw white text
         cv2.putText(display_frame, text, (x_pos, y_pos),
-                   font, font_scale, (0, 255, 0), thickness)
+                   font, font_scale, (255, 255, 255), thickness)
         
         return display_frame, elixir

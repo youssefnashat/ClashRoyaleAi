@@ -1,6 +1,6 @@
-# Full Overlay - Testing Walkthrough
+# Clash Royale AI Overlay - Walkthrough
 
-This walkthrough shows you how to test the combined elixir tracking and grid overlay features step-by-step.
+This walkthrough covers the modular overlay system with grid, elixir, and tower detection features.
 
 ## Prerequisites
 
@@ -8,34 +8,44 @@ This walkthrough shows you how to test the combined elixir tracking and grid ove
 - Emulator in **Portrait mode** (e.g., 450×827)
 - Window title is "Android Device"
 - **In a match or training mode** (elixir bar visible)
+- Python 3.14+
 
 ## Setup (First Time Only)
 
 ### 1. Create Virtual Environment
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 ### 2. Activate Virtual Environment
 ```bash
 # Windows PowerShell
-.\venv\Scripts\Activate
+.\.venv\Scripts\Activate.ps1
 
 # Windows CMD
-venv\Scripts\activate.bat
+.venv\Scripts\activate.bat
+
+# macOS/Linux
+source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies
 ```bash
-pip install opencv-python mss numpy pywin32
-```
-
-Or use the requirements file:
-```bash
 pip install -r requirements.txt
 ```
 
-## Testing the Full Overlay
+### 4. Create `.env` File
+Create a `.env` file in the project root with your Roboflow API key:
+```
+ROBOFLOW_API_KEY=your_api_key_here
+TROOP_MODEL_ID=clash-royale-xy2jw/2
+CARD_MODEL_ID=clash-cards-vt0gf/1
+ROBOFLOW_MODEL_ID=clash-royale-xy2jw/2
+```
+
+**Note**: The `.env` file will persist locally and won't be tracked by git.
+
+## Testing the Overlay System
 
 ### 1. Start Clash Royale
 - Open your emulator
@@ -49,122 +59,143 @@ python main.py
 
 ### 3. What You Should See
 
-**One Window With Multiple Overlays:**
+#### Game Overlay Window
+- Your game feed with overlay applied
+- Grid tiles with adjustable opacity
+- Green elixir text "E = X.X" at the bottom
+- Red bounding box around detected towers (when enabled)
 
-1. **Game Screen**
-   - Shows your game window
+#### Settings Window
+- **Grid Opacity**: Slider from 0% to 100% (default 20%)
+- **Elixir Tracking**: Toggle on/off
+- **Tower Detection**: Toggle on/off
 
-2. **Grid Overlay**
-   - Semi-transparent 18×32 grid displayed on the arena
-   - Horizontally centered
-   - Vertically compressed to fit gameplay area
+### 4. Testing Features
 
-3. **Green Bounding Box**
-   - Rectangle around the elixir bar at the bottom of the screen
+#### Grid Overlay
+1. Keep slider at 20% default
+2. Slowly move slider right to see grid fade in
+3. At 100%, grid should be fully opaque
+4. Move slider back to 20% to verify opacity control
 
-4. **Yellow Text Overlays** (top-left):
-   - `Your Elixir: X.X` - Your current elixir (0.0-10.0)
-   - `Opponent Est: X.X` - Estimated opponent elixir (0.0-10.0)
-   - `Frame XXX` - Frame counter (updates every 30 frames)
+#### Elixir Tracking
+1. Toggle "Elixir Tracking" ON in settings
+2. Look at bottom fifth of game screen
+3. Should see green "E = X.X" text with black background
+4. Value updates in real-time as elixir changes
+5. Toggle OFF to hide elixir display
 
-### 4. Verify Accuracy
+#### Tower Detection
+1. Toggle "Tower Detection" ON in settings
+2. Game should detect princess towers
+3. Red bounding boxes appear around detected towers
+4. Boxes update in real-time
+5. **Note**: Requires valid Roboflow API key in `.env`
 
-**Test Your Elixir Detection:**
+#### Keyboard Controls
+- Press `Q` to quit the application
 
-✅ **Empty Elixir (0)**:
-- Use all your elixir in-game
-- Counter should show **0.0** or **1.0** (depending on timing)
+### 5. Real-time Feature Toggling
+1. Toggle features on/off in settings window
+2. Notice console output shows feature state changes
+3. Systems reinitialize when features are toggled
+4. No need to restart application
 
-✅ **Half Full (5)**:
-- Wait for elixir to reach 5
-- Counter should show values in the **4.0-6.0** range
+## Verifying Initialization
 
-✅ **Full Elixir (10)**:
-- Wait for full elixir
-- Counter should show **10.0**
-- Should reach this and stay until you spend elixir
+On startup, you should see console output showing:
 
-✅ **Incremental Counting**:
-- Watch the counter increment smoothly as the bar fills
-- May update a few times per second
+```
+===========================================================================
+CLASH ROYALE OVERLAY SYSTEM
+===========================================================================
 
-**Test Opponent Tracking:**
+Initializing Settings Window...
+[OK] Settings window created
 
-✅ **Recovery Pattern**:
-- Watch "Opponent Est" value
-- It should increase over time (opponent elixir recovering)
-- Pattern should show logical recovery (0.7 per 30 frames in double elixir, 0.35 in single)
+Initializing Capture...
+Found window: Android Device
+[OK] Found window: Android Device
+[OK] Frame size: 450x826
 
-✅ **Grid Overlay**:
-- Should be visible and not obscure gameplay
-- Grid lines should align reasonably with the arena
-- Should maintain aspect ratio and centering
+[OK] Grid overlay initialized
 
-### 5. Exit
-Press **'q'** in the OpenCV window to quit the application.
+===========================================================================
+GRID INITIALIZATION VERIFICATION:
+===========================================================================
+Grid Configuration (from display_config.json):
+  scale_x: 0.85
+  scale_y: 0.67
+  offset_x: 33.75
+  offset_y: 88.0
+
+Tile States Loaded from JSON (shaded_tiles.json):
+  Total tiles: 576
+  ...
+
+[OK] Elixir tracking initialized
+
+FEATURES ENABLED:
+  Grid Overlay: 20%
+  Elixir Tracking: True
+  Tower Detection: False
+```
+
+This confirms all systems initialized correctly.
 
 ## Troubleshooting
 
-### Issue: "Waiting for window..."
-**Solution:** 
-- Make sure Clash Royale is running
-- Check that your emulator window is titled "Android Device"
-- If not, update `WINDOW_NAME_PATTERNS` in `src/config.py`
+**Grid not visible**: 
+- Check opacity slider is above 0%
+- Verify grid.json loads correctly (check console for tile counts)
 
-### Issue: Counter is stuck at 9
-**Solution:**
-- The threshold is too high
-- Lower `ELIXIR_SEGMENT_THRESHOLD` in `src/config.py` (try `0.30`)
+**Elixir not showing**:
+- Ensure "Elixir Tracking" toggle is ON
+- Check you're in a match with elixir bar visible
+- Verify elixir bar ROI is correct in config
 
-### Issue: Counter shows 1 when empty
-**Solution:**
-- First segment is too sensitive
-- In `src/vision.py` line 68, increase `0.75` to `0.80`
+**Tower detection not working**:
+- Ensure "Tower Detection" toggle is ON
+- Check `.env` has valid ROBOFLOW_API_KEY
+- Verify model IDs are correct
+- Check network connection (API calls required)
 
-### Issue: Green box is in the wrong place
-**Solution:**
-- Your resolution may be different
-- Check the "Main View" window to see where the box is
-- Adjust `ELIXIR_BAR_ROI` in `src/config.py`
-  - Format: `(x, y, width, height)`
-  - Current: `(90, 810, 340, 20)`
+**Window not found**:
+- Ensure emulator is running
+- Check window title is exactly "Android Device"
+- Verify emulator is in portrait mode
 
-### Issue: "Warning: Window is Landscape"
-**Solution:**
-- Clash Royale must be in Portrait mode
-- Change your emulator settings to 9:16 aspect ratio
-- Example: 900x1600, 720x1280, etc.
+**Settings window won't open**:
+- Check no other overlay windows are open
+- Try restarting application
+- Verify tkinter is installed (should be with Python)
 
-## Advanced Configuration
+## Understanding Feature State
 
-If you need to tune the detection, edit `src/config.py`:
+Each feature can be independently toggled:
 
-```python
-# Location of the elixir bar
-ELIXIR_BAR_ROI = (90, 810, 340, 20)  # (x, y, width, height)
+1. **Grid Overlay**: Always renders but opacity controlled by slider
+2. **Elixir Tracking**: Only processes and displays when enabled
+3. **Tower Detection**: Only processes detections when enabled
 
-# Color range for purple detection
-PURPLE_LOWER = (115, 30, 30)
-PURPLE_UPPER = (175, 255, 255)
+Toggling a feature OFF will:
+- Stop processing that feature
+- Remove display elements
+- Free up CPU resources
+- Show in console as reinitializing
 
-# Sensitivity (lower = more sensitive)
-ELIXIR_SEGMENT_THRESHOLD = 0.35
-```
+## Performance Notes
 
-## Understanding the Segments
-
-The elixir bar is divided into **10 segments**:
-- **Segment 1** (leftmost): Double-width, requires 75% fill to count
-- **Segments 2-10**: Standard width, require 35% fill to count
-
-This design:
-- Prevents false positives at 0 elixir (noise/numbers)
-- Makes counting more reliable as the bar fills
-- Accounts for animations and gradients
+- Grid rendering is lightweight
+- Elixir detection uses ROI-based analysis (fast)
+- Tower detection uses ML inference (slower, ~1-2 FPS impact)
+- Disabling unused features improves performance
+- Default settings (20% grid, elixir ON, towers OFF) balanced for performance
 
 ## Next Steps
 
-Once you've verified the elixir counter works accurately:
-1. Commit your changes if you tuned any settings
-2. Push to the `elixi_tracker` branch
-3. Ready to integrate with card detection and cycle tracking!
+- Adjust grid opacity slider to your preference
+- Try different opacity levels to find sweet spot
+- Enable tower detection and verify towers are detected correctly
+- Use keyboard shortcuts to interact with the grid
+- Monitor console for any errors or warnings

@@ -58,8 +58,8 @@ class TowerDetectionOverlay:
         """Get current tower states (which towers are down)
         
         Returns:
-            Dict with keys: leftEnemyDown, rightEnemyDown, 
-                           leftFriendlyDown, rightFriendlyDown
+            Dict with keys: LE (left enemy), RE (right enemy), 
+                           LF (left friendly), RF (right friendly)
         """
         try:
             return self.state_manager.get_tower_states()

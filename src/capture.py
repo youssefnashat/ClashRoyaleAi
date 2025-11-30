@@ -10,14 +10,12 @@ try:
     # PROCESS_PER_MONITOR_DPI_AWARE = 2
     # This ensures we get real physical pixel coordinates even if the window is on a secondary monitor
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    print("DPI Mode: Per-Monitor Aware (2)")
 except Exception:
     try:
         # Fallback for older Windows
         ctypes.windll.user32.SetProcessDPIAware()
-        print("DPI Mode: System Aware (Legacy)")
-    except Exception as e:
-        print(f"Warning: Failed to set DPI awareness: {e}")
+    except Exception:
+        pass
 
 class WindowCapture:
     def __init__(self):
@@ -34,12 +32,9 @@ class WindowCapture:
             for pattern in WINDOW_NAME_PATTERNS:
                 if pattern.lower() in title.lower():
                     self.hwnd = hwnd
-                    print(f"Found window: {title}")
                     return
 
         win32gui.EnumWindows(callback, None)
-        
-        # Suppress warning here to avoid spam in loops
         return self.hwnd is not None
 
     def get_screenshot(self):

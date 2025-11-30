@@ -41,17 +41,13 @@ def initialize_systems(frame_width, frame_height, settings):
     # Always initialize grid (opacity controls visibility)
     systems['grid'] = GridOverlay(frame_width, frame_height)
     systems['events'] = GameEvents()
-    print("[OK] Grid overlay initialized")
-    print_grid_info(systems['grid'])
     
     if settings.is_elixir_enabled():
         systems['elixir'] = ElixirDisplay()
-        print("[OK] Elixir tracking initialized")
     
     if settings.is_towers_enabled() and TOWER_DETECTION_AVAILABLE:
         try:
             systems['towers'] = TowerDisplay(frame_width, frame_height)
-            print("[OK] Tower detection initialized")
         except Exception as e:
             print(f"[ERROR] Tower detection failed: {e}")
             import traceback
@@ -63,52 +59,21 @@ def initialize_systems(frame_width, frame_height, settings):
 
 def print_grid_info(grid):
     """Print grid configuration information"""
-    print("\n" + "=" * 80)
-    print("GRID INITIALIZATION VERIFICATION:")
-    print("=" * 80)
-    print("Grid Configuration (from display_config.json):")
-    print(f"  scale_x: {grid.grid_config.get('scale_x')}")
-    print(f"  scale_y: {grid.grid_config.get('scale_y')}")
-    print(f"  offset_x: {grid.grid_config.get('offset_x')}")
-    print(f"  offset_y: {grid.grid_config.get('offset_y')}")
-    
-    tile_state_counts = {}
-    for tile_coord, tile_state_value in grid.tile_states.items():
-        tile_state_counts[tile_state_value] = tile_state_counts.get(tile_state_value, 0) + 1
-    
-    print(f"\nTile States Loaded from JSON (shaded_tiles.json):")
-    print(f"  Total tiles: {len(grid.tile_states)}")
-    print(f"  Breakdown:")
-    for state_name in ['red', 'leftEnemyDown', 'rightEnemyDown', 'leftFriendlyDown', 'rightFriendlyDown', 'empty']:
-        count = tile_state_counts.get(state_name, 0)
-        if count > 0:
-            print(f"    {state_name}: {count}")
-    print("=" * 80 + "\n")
+    pass
 
 
 def main():
     """Main application loop with settings window"""
     
-    print("=" * 80)
-    print("CLASH ROYALE OVERLAY SYSTEM")
-    print("=" * 80)
-    print("\nInitializing Settings Window...")
-    
     # Initialize settings window (non-blocking)
     settings = SettingsWindow()
-    print("[OK] Settings window created")
-    
-    print("\nInitializing Capture...")
     
     # Find and connect to game window
     cap = WindowCapture()
     while not cap.hwnd:
         cap.find_window()
         if not cap.hwnd:
-            print("Waiting for window 'Android Device'...")
             time.sleep(1)
-    
-    print(f"[OK] Found window: Android Device")
     
     # Get initial frame
     screenshot = cap.get_screenshot()
@@ -117,24 +82,9 @@ def main():
         return
     
     frame_h, frame_w = screenshot.shape[:2]
-    print(f"[OK] Frame size: {frame_w}x{frame_h}")
     
     # Initialize all systems
     systems = initialize_systems(frame_w, frame_h, settings)
-    
-    # Print feature status
-    print("\n" + "-" * 80)
-    print("FEATURES ENABLED:")
-    print(f"  Grid Overlay: {settings.get_grid_opacity() * 100:.0f}%")
-    print(f"  Elixir Tracking: {settings.is_elixir_enabled()}")
-    print(f"  Tower Detection: {settings.is_towers_enabled() and systems['towers'] is not None}")
-    print("-" * 80)
-    
-    if systems['events']:
-        systems['events'].print_help()
-    
-    print("Press 'q' to quit | Settings window shows toggles for all features")
-    print("-" * 80 + "\n")
     
     frame_count = 0
     last_state = {
@@ -156,11 +106,7 @@ def main():
             }
             
             if current_state != last_state:
-                print("\n[INFO] Feature state changed, reinitializing systems...")
                 systems = initialize_systems(frame_w, frame_h, settings)
-                print(f"  Grid Opacity: {current_state['grid_opacity'] * 100:.0f}%")
-                print(f"  Elixir: {current_state['elixir']}")
-                print(f"  Towers: {current_state['towers']}")
                 last_state = current_state.copy()
             
             screenshot = cap.get_screenshot()
@@ -192,21 +138,12 @@ def main():
             
             # Frame counter and logging
             frame_count += 1
-            if frame_count % 30 == 0 and settings.is_elixir_enabled():
-                print(f"Frame {frame_count}")
             
-            # Handle keyboard input
+            # Handle keyboard input (quit only, event triggers currently unassigned)
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
-                print("\nQuitting...")
+                print("Quitting...")
                 break
-            elif key != 255 and systems['events']:  # 255 means no key pressed
-                char = chr(key)
-                if char.lower() == 'x':
-                    systems['events'].reset_to_original()
-                    print("[OK] All tiles reset to original state")
-                else:
-                    systems['events'].trigger_event(char)
     
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")

@@ -112,10 +112,10 @@ class GridOverlay:
     # Tile states with BGR colors
     TILE_STATES = {
         'red': (0, 0, 255),
-        'leftEnemyDown': (0, 255, 0),
-        'rightEnemyDown': (255, 0, 0),
-        'leftFriendlyDown': (0, 255, 255),
-        'rightFriendlyDown': (255, 0, 255),
+        'LE': (0, 255, 0),
+        'RE': (255, 0, 0),
+        'LF': (0, 255, 255),
+        'RF': (255, 0, 255),
         'empty': None  # Transparent, not drawn
     }
     
@@ -166,15 +166,10 @@ class GridOverlay:
                     config_data = json.load(f)
                     grid_config = config_data.get('grid', {})
                     if 'scale_x' in grid_config:
-                        print(f"[INIT] Loaded grid config from {self.DISPLAY_CONFIG_FILE}")
                         return grid_config
-                    print(f"[INIT] No grid config in {self.DISPLAY_CONFIG_FILE}, using defaults")
                     return default_config
             except Exception as e:
-                print(f"[INIT] Error loading {self.DISPLAY_CONFIG_FILE}: {e}, using defaults")
                 return default_config
-        else:
-            print(f"[INIT] {self.DISPLAY_CONFIG_FILE} not found, using default config")
         return default_config
     
     def _load_tile_states(self):
@@ -187,13 +182,9 @@ class GridOverlay:
                     for key, value in data.items():
                         tile_tuple = tuple(map(int, key.split(',')))
                         states[tile_tuple] = value
-                    print(f"[INIT] Loaded {len(states)} tile states from {self.SHADED_TILES_FILE}")
                     return states
             except Exception as e:
-                print(f"[INIT] Error loading {self.SHADED_TILES_FILE}: {e}")
                 return {}
-        else:
-            print(f"[INIT] {self.SHADED_TILES_FILE} not found, starting with empty tile states")
         return {}
     
     def draw_overlay(self, frame):
@@ -239,13 +230,13 @@ class GridOverlay:
         for col in range(self.GRID_WIDTH + 1):
             x = int(offset_x + col * scaled_tile_width)
             if grid_left <= x <= grid_right:
-                cv2.line(overlay, (x, grid_top), (x, grid_bottom), (0, 255, 0), 1)
+                cv2.line(overlay, (x, grid_top), (x, grid_bottom), (255, 255, 255), 1)
         
         # Draw horizontal lines
         for row in range(self.GRID_HEIGHT + 1):
             y = int(offset_y + row * scaled_tile_height)
             if grid_top <= y <= grid_bottom:
-                cv2.line(overlay, (grid_left, y), (grid_right, y), (0, 255, 0), 1)
+                cv2.line(overlay, (grid_left, y), (grid_right, y), (255, 255, 255), 1)
         
         # Return overlay without blending (opacity controlled by main.py slider)
         return overlay

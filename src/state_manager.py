@@ -79,17 +79,17 @@ class PrincessTowerTracker:
         self.last_update = time.time()
         
         self.previous_states = {
-            'rightEnemyDown': False,
-            'leftEnemyDown': False,
-            'leftFriendlyDown': False,
-            'rightFriendlyDown': False,
+            'RE': False,
+            'LE': False,
+            'LF': False,
+            'RF': False,
         }
         
         self.state_changes = {
-            'rightEnemyDown': None,
-            'leftEnemyDown': None,
-            'leftFriendlyDown': None,
-            'rightFriendlyDown': None,
+            'RE': None,
+            'LE': None,
+            'LF': None,
+            'RF': None,
         }
     
     def update(self, detections):
@@ -183,10 +183,10 @@ class PrincessTowerTracker:
         towers_by_pos = self.get_towers_by_position()
         
         current_states = {
-            'rightEnemyDown': self._is_tower_down(towers_by_pos['enemy_right']),
-            'leftEnemyDown': self._is_tower_down(towers_by_pos['enemy_left']),
-            'leftFriendlyDown': self._is_tower_down(towers_by_pos['friendly_left']),
-            'rightFriendlyDown': self._is_tower_down(towers_by_pos['friendly_right']),
+            'RE': self._is_tower_down(towers_by_pos['enemy_right']),
+            'LE': self._is_tower_down(towers_by_pos['enemy_left']),
+            'LF': self._is_tower_down(towers_by_pos['friendly_left']),
+            'RF': self._is_tower_down(towers_by_pos['friendly_right']),
         }
         
         for key in self.state_changes:

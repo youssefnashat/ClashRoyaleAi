@@ -1,183 +1,169 @@
-# Clash Royale Full Overlay
+# Clash Royale AI Overlay
 
-**Branch**: `full_overlay`
+A modular Python application that overlays real-time game information on Clash Royale using computer vision and machine learning.
 
-This branch combines **real-time elixir tracking** with **arena grid overlay** for Clash Royale. It uses computer vision to detect your elixir and displays an interactive 18×32 grid overlay on top of your game board.
+## Features
 
-## What This Branch Does
+- ✅ **Grid Overlay** - Interactive 18×32 arena grid with adjustable opacity (0-100%)
+- ✅ **Elixir Tracking** - Real-time elixir detection displayed at bottom of screen in green
+- ✅ **Tower Detection** - ML-based princess tower detection using Roboflow
+- ✅ **Real-time Controls** - Toggle features on/off via settings window
+- ✅ **Modular Architecture** - Clean, separate feature modules for easy extension
 
-- ✅ **Captures** your game window (Android emulator)
-- ✅ **Detects** the purple elixir bar at the bottom of the screen
-- ✅ **Counts** elixir using a **10-segment detection** system (0-10)
-- ✅ **Tracks** opponent elixir with estimated recovery rates
-- ✅ **Displays** a 18×32 grid overlay on the arena
-- ✅ **Shows** both your and opponent's elixir in real-time
+## System Requirements
 
-## Prerequisites
-
-- **Emulator**: Android emulator running Clash Royale
-  - Window must be named "Android Device" (MuMu Player, BlueStacks, etc.)
-  - **Portrait mode required** (900 by 1600 REQUIRED)
-  - Match or Training mode (elixir bar must be visible)
-- **Python 3.10+**
+- **Python 3.14** (uses HTTP-based Roboflow API, not SDK)
+- **Android Emulator** running Clash Royale
+  - Window must be named "Android Device"
+  - Portrait mode (450×826 or similar)
+  - In an active match or training mode
 
 ## Installation
 
-1. **Clone/Download** this repository and switch to the `full_overlay` branch:
+1. **Clone Repository**:
    ```bash
-   git checkout full_overlay
+   git clone https://github.com/youssefnashat/ClashRoyaleAi.git
+   cd ClashRoyaleAi
    ```
 
-2. **Create virtual environment**:
+2. **Create Virtual Environment**:
    ```bash
-   python -m venv venv
+   python -m venv .venv
    ```
 
-3. **Activate virtual environment**:
+3. **Activate Virtual Environment**:
    ```bash
    # Windows PowerShell
-   .\venv\Scripts\Activate
+   .\.venv\Scripts\Activate.ps1
    
    # Windows CMD
-   venv\Scripts\activate.bat
+   .venv\Scripts\activate.bat
+   
+   # macOS/Linux
+   source .venv/bin/activate
    ```
 
-4. **Install dependencies**:
+4. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-5. **Create `display_config.json`** (Required for first run):
+5. **Create `.env` File**:
    ```bash
-   cp display_config.json.example display_config.json
+   # Edit .env and add your Roboflow API key
+   ROBOFLOW_API_KEY=your_actual_api_key_here
+   TROOP_MODEL_ID=your_troop_model_id
+   CARD_MODEL_ID=your_card_model_id
+   ROBOFLOW_MODEL_ID=your_tower_detection_model_id
    ```
-   Then adjust the values to match your screen:
-   - `grid.offset_x`, `grid.offset_y`: Grid position
-   - `elixir_bar.x`, `elixir_bar.y`: Elixir bar position
-   - See [Configuration](#configuration) section below
 
 ## Usage
 
-1. **Start Clash Royale** in your emulator (Portrait mode, in a match or training)
-
-2. **Run the main application**:
-   ```bash
-   python main.py
-   ```
-
-3. **What you'll see**:
-   - **Game Screen**: Your game window with overlays
-   - **Grid Overlay**: 18×32 translucent grid on the arena
-   - **Green Box**: Bounding box around the elixir bar at the bottom
-   - **Yellow Text**: Real-time elixir values
-     - "Your Elixir: X.X" (your current elixir)
-     - "Opponent Est: X.X" (estimated opponent elixir based on tracker)
-   - **Frame Counter**: Updates every 30 frames
-
-4. **Press 'q'** to quit
-
-## How It Works
-
-### Elixir Tracking
-The elixir bar is divided into **11 equal units**:
-- **First box** = 2 units (represents 1 elixir, requires 75% fill)
-- **Other 9 boxes** = 1 unit each (requires 35% fill)
-
-Each box that passes the threshold adds 1 to the elixir count.
-
-### Opponent Elixir Estimation
-The opponent elixir tracker estimates elixir recovery based on time:
-- **Single Elixir**: Recovers at ~0.35 elixir per 30 frames
-- **Double Elixir**: Recovers at ~0.7 elixir per 30 frames
-
-### Grid Overlay
-The grid is a 18×32 tile overlay representing the Clash Royale arena. It is:
-- **Horizontally centered** on the screen
-- **Vertically compressed** (67% height) to fit gameplay area
-- **Semi-transparent** (33% opacity) to not obstruct gameplay
-- **Configurable** via `grid_config.json` and `shaded_tiles.json`
-
-## Configuration
-
-### Display Configuration (`display_config.json`)
-
-**Important**: This file is **local to your machine** and controls the exact positioning of the grid and elixir bar. It's in `.gitignore` so each user must create their own.
-
-**New users must create this file** by adjusting the default values to match your screen:
-
-```json
-{
-  "grid": {
-    "scale_x": 0.85,        // Horizontal scale (0.0-1.0)
-    "scale_y": 0.67,        // Vertical scale (0.0-1.0)
-    "offset_x": 96.0,       // Horizontal position (auto-centered if frame resizes)
-    "offset_y": 88.0        // Vertical position in pixels
-  },
-  "elixir_bar": {
-    "x": 94,                // Left edge position
-    "y": 797,               // Top edge position
-    "width": 340,           // Box width
-    "height": 20            // Box height
-  }
-}
+```bash
+python main.py
 ```
 
-**How to find your correct values**:
-1. Run `python main.py`
-2. Look at the green bounding box around the elixir bar and grid position
-3. Note the displayed ROI coordinates `(x, y, width, height)`
-4. Update `display_config.json` accordingly
-5. Restart to verify positioning is correct
+### Controls
 
-### Elixir Detection (`src/config.py`)
+- **Settings Window**: Adjust features in real-time
+  - Grid Overlay: 0-100% opacity slider (default 20%)
+  - Elixir Tracking: On/Off toggle
+  - Tower Detection: On/Off toggle
+- **Close Application**: Press `Q` in the game overlay window or click X on settings window
 
-- **`ELIXIR_BAR_ROI`**: Coordinates of the elixir bar `(x, y, width, height)`
-  - Current: `(90, 797, 340, 20)`
-- **`PURPLE_LOWER` / `PURPLE_UPPER`**: HSV color range for purple detection
-  - Current: `(115, 30, 30)` to `(175, 255, 255)`
-- **`ELIXIR_SEGMENT_THRESHOLD`**: Minimum % of purple pixels to count as "filled"
-  - Current: `0.35` (35%)
-
-### Grid Overlay Settings
-
-Grid settings are now part of `display_config.json`:
-
-- **`scale_x`**: Horizontal scaling factor (default: 0.85)
-- **`scale_y`**: Vertical scaling factor (default: 0.67)
-- **`offset_x`**: Horizontal offset (auto-centered, default: 96.0)
-- **`offset_y`**: Vertical offset in pixels (default: 88.0)
-
-### Tile States (`shaded_tiles.json`)
-
-Defines which tiles are shaded and their appearance in the overlay.
-
-## Troubleshooting
-
-- **Window Not Found**: Ensure your emulator window is titled "Android Device"
-- **Stuck on 9**: Threshold may be too high, lower `ELIXIR_SEGMENT_THRESHOLD` in `config.py`
-- **Shows 1 when empty**: First segment threshold too low, increase the `0.75` value in `src/vision.py` line 68
-- **Landscape Warning**: Rotate your emulator to Portrait mode (9:16 aspect ratio)
-
-## Files in This Branch
+## Project Structure
 
 ```
 src/
-├── __init__.py           # Python package marker
-├── capture.py            # Screen capture logic
-├── config.py             # Configuration and thresholds
-└── vision.py             # Elixir detection + grid overlay
-
-main.py                    # Main application entry point
-grid_config.json           # Grid transformation settings
-shaded_tiles.json          # Tile state definitions
-requirements.txt           # Python dependencies
-README.md                  # This file
-walkthrough.md             # Step-by-step testing guide
+  ├── main.py                    # Application orchestrator
+  ├── capture.py                 # Game window capture
+  ├── config.py                  # Configuration & feature flags
+  ├── vision.py                  # Grid overlay rendering
+  ├── elixir_tracker_module.py   # Elixir detection & display
+  ├── tower_display.py           # Tower detection wrapper
+  ├── detector.py                # Roboflow API integration
+  ├── state_manager.py           # Tower state tracking
+  ├── settings_window.py         # Settings UI
+  ├── events.py                  # Keyboard event handling
+  └── __pycache__/
+assets/
+  ├── cards_raw/                 # Card image assets
+  └── shaded_tiles.json          # Grid tile state definitions
 ```
 
-## Next Steps
+## Configuration
 
-This branch is complete and tested. For the full application:
-- **Card Detection**: See `feature/card-detection` branch
-- **Cycle Logic**: See `feature/cycle-logic` branch
-- **Integration**: These will be merged into `main`
+### `.env` File (Required)
+
+```
+ROBOFLOW_API_KEY=your_api_key
+TROOP_MODEL_ID=model_id
+CARD_MODEL_ID=model_id
+ROBOFLOW_MODEL_ID=tower_detection_model
+```
+
+### `display_config.json` (Auto-generated)
+
+Contains grid positioning parameters (scale, offset). Generated automatically on first run with defaults.
+
+### `shaded_tiles.json`
+
+Defines tile states (red, empty, tower destroyed, etc.) loaded on startup. 576 tiles per frame.
+
+## Features In Detail
+
+### Grid Overlay
+- Adjustable opacity via slider (0-100%, default 20%)
+- 18×32 tile grid showing arena state
+- Color-coded tiles (red, tower positions, etc.)
+- Grid lines constrained to grid boundaries
+- 100% opacity shows grid fully opaque
+
+### Elixir Tracking
+- Green text display ("E = " format with value)
+- Black background for visibility
+- Positioned at bottom fifth of screen
+- Detects elixir from ROI-based analysis
+
+### Tower Detection
+- Roboflow ML model integration
+- Real-time tower position tracking
+- Automatic destruction detection
+- State deduplication to prevent duplicates
+
+## Troubleshooting
+
+**Issue**: Tower detection not working - Ensure valid Roboflow API key in `.env` and model IDs are correct
+
+**Issue**: Window not found - Make sure Android Device window is open and in portrait mode
+
+**Issue**: Grid lines extending beyond grid - Fixed; lines now constrain to grid boundaries
+
+## Development
+
+### Adding New Features
+
+1. Create new module in `src/`
+2. Implement feature class with `update()` method
+3. Add feature flag to `config.py`
+4. Integrate into `main.py` loop
+5. Add toggle to `settings_window.py` if needed
+
+### Code Style
+
+- Use clear, descriptive variable names
+- Add docstrings to classes and methods
+- Keep modules focused and modular
+- Use error handling for external API calls
+
+## License
+
+This project is part of the ClashRoyaleAi repository.
+
+## Notes
+
+- Python 3.14 required for HTTP-based API (SDK not compatible)
+- All overlays drawn via OpenCV (cv2)
+- Settings window uses Tkinter
+- Modular architecture allows easy feature toggling
+- `.env` file is persistent locally and not tracked by git
