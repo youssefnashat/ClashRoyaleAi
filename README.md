@@ -47,6 +47,15 @@ This branch combines **real-time elixir tracking** with **arena grid overlay** f
    pip install -r requirements.txt
    ```
 
+5. **Create `display_config.json`** (Required for first run):
+   ```bash
+   cp display_config.json.example display_config.json
+   ```
+   Then adjust the values to match your screen:
+   - `grid.offset_x`, `grid.offset_y`: Grid position
+   - `elixir_bar.x`, `elixir_bar.y`: Elixir bar position
+   - See [Configuration](#configuration) section below
+
 ## Usage
 
 1. **Start Clash Royale** in your emulator (Portrait mode, in a match or training)
@@ -90,6 +99,36 @@ The grid is a 18×32 tile overlay representing the Clash Royale arena. It is:
 
 ## Configuration
 
+### Display Configuration (`display_config.json`)
+
+**Important**: This file is **local to your machine** and controls the exact positioning of the grid and elixir bar. It's in `.gitignore` so each user must create their own.
+
+**New users must create this file** by adjusting the default values to match your screen:
+
+```json
+{
+  "grid": {
+    "scale_x": 0.85,        // Horizontal scale (0.0-1.0)
+    "scale_y": 0.67,        // Vertical scale (0.0-1.0)
+    "offset_x": 96.0,       // Horizontal position (auto-centered if frame resizes)
+    "offset_y": 88.0        // Vertical position in pixels
+  },
+  "elixir_bar": {
+    "x": 94,                // Left edge position
+    "y": 797,               // Top edge position
+    "width": 340,           // Box width
+    "height": 20            // Box height
+  }
+}
+```
+
+**How to find your correct values**:
+1. Run `python main.py`
+2. Look at the green bounding box around the elixir bar and grid position
+3. Note the displayed ROI coordinates `(x, y, width, height)`
+4. Update `display_config.json` accordingly
+5. Restart to verify positioning is correct
+
 ### Elixir Detection (`src/config.py`)
 
 - **`ELIXIR_BAR_ROI`**: Coordinates of the elixir bar `(x, y, width, height)`
@@ -99,11 +138,13 @@ The grid is a 18×32 tile overlay representing the Clash Royale arena. It is:
 - **`ELIXIR_SEGMENT_THRESHOLD`**: Minimum % of purple pixels to count as "filled"
   - Current: `0.35` (35%)
 
-### Grid Overlay (`grid_config.json`)
+### Grid Overlay Settings
+
+Grid settings are now part of `display_config.json`:
 
 - **`scale_x`**: Horizontal scaling factor (default: 0.85)
 - **`scale_y`**: Vertical scaling factor (default: 0.67)
-- **`offset_x`**: Horizontal offset (auto-centered, default: 0.0)
+- **`offset_x`**: Horizontal offset (auto-centered, default: 96.0)
 - **`offset_y`**: Vertical offset in pixels (default: 88.0)
 
 ### Tile States (`shaded_tiles.json`)
