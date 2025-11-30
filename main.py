@@ -82,6 +82,10 @@ def main():
         x, y, w, h = ELIXIR_BAR_ROI
         cv2.rectangle(display_frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
         
+        # Display ROI coordinates for reference
+        cv2.putText(display_frame, f"ROI: ({x}, {y}, {w}, {h})", (x, y - 5),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        
         # Add elixir info overlay
         cv2.putText(display_frame, f"Your Elixir: {elixir:.1f}", (10, 30),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)

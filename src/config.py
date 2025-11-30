@@ -1,16 +1,45 @@
 # Configuration for Clash Royale Match Analyzer
 
+import json
+import os
+
 # Window Capture Settings
 WINDOW_NAME_PATTERNS = ["Android Device"]
 RESIZE_WIDTH = 450
 RESIZE_HEIGHT = 827  # Actual frame height from emulator
 
-# Region of Interest (ROI) Definitions
-# Format: (x, y, width, height) based on 450px width
+# Load display configuration from unified config file
+def _load_display_config():
+    """Load display positions and grid settings from display_config.json."""
+    config_file = "display_config.json"
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r') as f:
+                return json.load(f)
+        except:
+            pass
+    # Default fallback
+    return {
+        "grid": {
+            "scale_x": 0.85,
+            "scale_y": 0.67,
+            "offset_x": 96.0,
+            "offset_y": 88.0
+        },
+        "elixir_bar": {
+            "x": 90,
+            "y": 797,
+            "width": 340,
+            "height": 20
+        }
+    }
 
-# Elixir Bar: Bottom area where the purple bar is
-# Adjusted for 450x827 resolution
-ELIXIR_BAR_ROI = (90, 797, 340, 20) 
+_display_config = _load_display_config()
+
+# Region of Interest (ROI) Definitions
+# Format: (x, y, width, height) - loaded from display_config.json
+_elixir_cfg = _display_config["elixir_bar"]
+ELIXIR_BAR_ROI = (_elixir_cfg["x"], _elixir_cfg["y"], _elixir_cfg["width"], _elixir_cfg["height"]) 
 
 # Arena: Where cards are played (The main battlefield)
 ARENA_ROI = (20, 100, 410, 500)

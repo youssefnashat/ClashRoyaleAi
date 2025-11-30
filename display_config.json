@@ -1,0 +1,14 @@
+{
+  "grid": {
+    "scale_x": 0.85,
+    "scale_y": 0.67,
+    "offset_x": 96.0,
+    "offset_y": 88.0
+  },
+  "elixir_bar": {
+    "x": 94,
+    "y": 797,
+    "width": 340,
+    "height": 20
+  }
+}
