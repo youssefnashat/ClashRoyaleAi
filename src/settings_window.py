@@ -14,7 +14,7 @@ class SettingsWindow:
         """Initialize settings window with feature toggles"""
         self.root = tk.Tk()
         self.root.title("Clash Royale Overlay - Settings")
-        self.root.geometry("350x280")
+        self.root.geometry("250x180")
         self.root.resizable(False, False)
         
         # Make window stay on top
@@ -39,71 +39,40 @@ class SettingsWindow:
         title = ttk.Label(
             self.root,
             text="Overlay Features",
-            font=("Arial", 14, "bold")
+            font=("Arial", 12, "bold")
         )
-        title.pack(pady=10)
+        title.pack(pady=8)
         
         # Separator
         sep1 = ttk.Separator(self.root, orient='horizontal')
         sep1.pack(fill='x', padx=10, pady=5)
         
         # Grid Overlay Toggle
-        grid_frame = ttk.Frame(self.root)
-        grid_frame.pack(fill='x', padx=20, pady=8, anchor='w')
-        
         grid_check = ttk.Checkbutton(
-            grid_frame,
+            self.root,
             text="Grid Overlay",
             variable=self.grid_enabled,
             state='normal'
         )
-        grid_check.pack(side='left', fill='x')
-        
-        grid_status = ttk.Label(grid_frame, text="Tile visualization", foreground="gray", font=("Arial", 8))
-        grid_status.pack(side='right', padx=10)
+        grid_check.pack(fill='x', padx=20, pady=4, anchor='w')
         
         # Elixir Tracking Toggle
-        elixir_frame = ttk.Frame(self.root)
-        elixir_frame.pack(fill='x', padx=20, pady=8, anchor='w')
-        
         elixir_check = ttk.Checkbutton(
-            elixir_frame,
+            self.root,
             text="Elixir Tracking",
             variable=self.elixir_enabled,
             state='normal'
         )
-        elixir_check.pack(side='left', fill='x')
-        
-        elixir_status = ttk.Label(elixir_frame, text="Elixir count", foreground="gray", font=("Arial", 8))
-        elixir_status.pack(side='right', padx=10)
+        elixir_check.pack(fill='x', padx=20, pady=4, anchor='w')
         
         # Tower Detection Toggle
-        towers_frame = ttk.Frame(self.root)
-        towers_frame.pack(fill='x', padx=20, pady=8, anchor='w')
-        
         towers_check = ttk.Checkbutton(
-            towers_frame,
+            self.root,
             text="Tower Detection",
             variable=self.towers_enabled,
             state='normal'
         )
-        towers_check.pack(side='left', fill='x')
-        
-        towers_status = ttk.Label(towers_frame, text="Princess towers", foreground="gray", font=("Arial", 8))
-        towers_status.pack(side='right', padx=10)
-        
-        # Separator
-        sep2 = ttk.Separator(self.root, orient='horizontal')
-        sep2.pack(fill='x', padx=10, pady=10)
-        
-        # Status info
-        info_label = ttk.Label(
-            self.root,
-            text="✓ Changes apply immediately",
-            foreground="green",
-            font=("Arial", 9)
-        )
-        info_label.pack(pady=5)
+        towers_check.pack(fill='x', padx=20, pady=4, anchor='w')
     
     def _on_close_window(self):
         """Handle window close button"""
