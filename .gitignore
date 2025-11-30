@@ -3,5 +3,4 @@ __pycache__/
 *.pyc
 .DS_Store
 .vscode/
-display_config.json
-!display_config.json.example
+.env

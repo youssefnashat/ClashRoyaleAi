@@ -106,7 +106,7 @@ class GridOverlay:
     
     GRID_WIDTH = 18
     GRID_HEIGHT = 32
-    DISPLAY_CONFIG_FILE = "display_config.json"
+    GRID_CONFIG_FILE = "grid_config.json"
     SHADED_TILES_FILE = "shaded_tiles.json"
     
     # Tile states with BGR colors
@@ -115,8 +115,7 @@ class GridOverlay:
         'leftEnemyDown': (0, 255, 0),
         'rightEnemyDown': (255, 0, 0),
         'leftFriendlyDown': (0, 255, 255),
-        'rightFriendlyDown': (255, 0, 255),
-        'empty': None  # Transparent, not drawn
+        'rightFriendlyDown': (255, 0, 255)
     }
     
     def __init__(self, frame_width, frame_height):
@@ -152,20 +151,19 @@ class GridOverlay:
         self.grid_config['offset_y'] = current_offset_y
     
     def _load_grid_config(self):
-        """Load grid scale and offset from display_config.json."""
+        """Load grid scale and offset from grid_config.json."""
         default_config = {
             'scale_x': 0.85,
-            'scale_y': 0.67,
-            'offset_x': 96.0,
-            'offset_y': 88.0
+            'scale_y': 0.85,
+            'offset_x': 0.0,
+            'offset_y': 0.0
         }
         
-        if os.path.exists(self.DISPLAY_CONFIG_FILE):
+        if os.path.exists(self.GRID_CONFIG_FILE):
             try:
-                with open(self.DISPLAY_CONFIG_FILE, 'r') as f:
-                    config_data = json.load(f)
-                    grid_config = config_data.get('grid', {})
-                    return grid_config if 'scale_x' in grid_config else default_config
+                with open(self.GRID_CONFIG_FILE, 'r') as f:
+                    config = json.load(f)
+                    return config if 'scale_x' in config else default_config
             except:
                 return default_config
         return default_config
@@ -208,8 +206,6 @@ class GridOverlay:
         
         # Draw shaded tiles
         for (tile_x, tile_y), state in self.tile_states.items():
-            if state == 'empty':  # Skip empty tiles - keep transparent
-                continue
             color = self.TILE_STATES.get(state, (0, 0, 255))
             x1 = int(offset_x + tile_x * scaled_tile_width)
             y1 = int(offset_y + tile_y * scaled_tile_height)
