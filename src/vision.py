@@ -228,16 +228,24 @@ class GridOverlay:
             y2 = int(offset_y + (tile_y + 1) * scaled_tile_height)
             cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
         
-        # Draw grid lines
+        # Draw grid lines (only within the scaled grid area)
+        # Calculate grid boundaries
+        grid_left = int(offset_x)
+        grid_top = int(offset_y)
+        grid_right = int(offset_x + self.GRID_WIDTH * scaled_tile_width)
+        grid_bottom = int(offset_y + self.GRID_HEIGHT * scaled_tile_height)
+        
+        # Draw vertical lines
         for col in range(self.GRID_WIDTH + 1):
             x = int(offset_x + col * scaled_tile_width)
-            if 0 <= x < self.frame_width:
-                cv2.line(overlay, (x, 0), (x, self.frame_height), (0, 255, 0), 1)
+            if grid_left <= x <= grid_right:
+                cv2.line(overlay, (x, grid_top), (x, grid_bottom), (0, 255, 0), 1)
         
+        # Draw horizontal lines
         for row in range(self.GRID_HEIGHT + 1):
             y = int(offset_y + row * scaled_tile_height)
-            if 0 <= y < self.frame_height:
-                cv2.line(overlay, (0, y), (self.frame_width, y), (0, 255, 0), 1)
+            if grid_top <= y <= grid_bottom:
+                cv2.line(overlay, (grid_left, y), (grid_right, y), (0, 255, 0), 1)
         
         # Return overlay without blending (opacity controlled by main.py slider)
         return overlay
