@@ -2,11 +2,19 @@
 
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Window Capture Settings
 WINDOW_NAME_PATTERNS = ["Android Device"]
 RESIZE_WIDTH = 450
 RESIZE_HEIGHT = 827  # Actual frame height from emulator
+
+# Model IDs for detection
+TROOP_MODEL_ID = os.getenv("TROOP_MODEL_ID", "clash-royale-xy2jw/2")
+CARD_MODEL_ID = os.getenv("HAND_CARDS_MODEL_ID", "clash-cards-vt0gf/1")
 
 # Load display configuration from unified config file
 def _load_display_config():
@@ -47,6 +55,11 @@ ARENA_ROI = (20, 100, 410, 500)
 # Card Detection Settings
 MATCH_CONFIDENCE = 0.8
 DEBOUNCE_TIME = 3.0  # Seconds to ignore the same card
+
+# Feature Flags
+ENABLE_TOWER_DETECTION = False  # Set to True to enable tower detection visualization
+ENABLE_GRID_OVERLAY = True  # Set to True to show grid overlay
+ENABLE_ELIXIR_TRACKING = True  # Set to True to show elixir tracking
 
 # Elixir Logic
 ELIXIR_RECOVERY_RATE_SINGLE = 0.35  # Elixir per second

@@ -8,11 +8,11 @@ from src.config import TROOP_MODEL_ID, CARD_MODEL_ID
 class RoboflowDetector:
     """
     Wrapper for Roboflow HTTP API.
-    Handles dual models: one for troops (arena) and one for cards (hand).
+    Handles multiple models: troops (arena), cards (hand), and towers.
     Compatible with Python 3.14+
     """
     
-    def __init__(self):
+    def __init__(self, tower_model_id=None):
         """Initialize the Roboflow API with credentials from .env"""
         load_dotenv()
         
@@ -25,15 +25,19 @@ class RoboflowDetector:
             )
         
         self.api_url_base = "https://detect.roboflow.com"
+        self.tower_model_id = tower_model_id or os.getenv("ROBOFLOW_MODEL_ID")
+        
         print(f"Roboflow HTTP API initialized.")
         print(f"Troop Model: {TROOP_MODEL_ID}")
         print(f"Card Model: {CARD_MODEL_ID}")
+        if self.tower_model_id:
+            print(f"Tower Model: {self.tower_model_id}")
 
     def _detect_with_model(self, frame, model_id):
         """
         Generic detection method using HTTP API.
         """
-        if frame is None:
+        if frame is None or not model_id:
             return []
             
         try:
@@ -87,6 +91,12 @@ class RoboflowDetector:
         Detect cards in the player's hand using CARD_MODEL_ID.
         """
         return self._detect_with_model(frame, CARD_MODEL_ID)
+
+    def detect_towers(self, frame):
+        """
+        Detect princess towers using the tower model.
+        """
+        return self._detect_with_model(frame, self.tower_model_id)
 
     def detect(self, frame):
         """
