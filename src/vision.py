@@ -239,6 +239,5 @@ class GridOverlay:
             if 0 <= y < self.frame_height:
                 cv2.line(overlay, (0, y), (self.frame_width, y), (0, 255, 0), 1)
         
-        # Blend with original frame (33% opacity)
-        result = cv2.addWeighted(overlay, 0.33, frame, 0.67, 0)
-        return result
+        # Return overlay without blending (opacity controlled by main.py slider)
+        return overlay

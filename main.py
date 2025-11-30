@@ -38,11 +38,11 @@ def initialize_systems(frame_width, frame_height, settings):
         'towers': None,
     }
     
-    if settings.is_grid_enabled():
-        systems['grid'] = GridOverlay(frame_width, frame_height)
-        systems['events'] = GameEvents()
-        print("[OK] Grid overlay initialized")
-        print_grid_info(systems['grid'])
+    # Always initialize grid (opacity controls visibility)
+    systems['grid'] = GridOverlay(frame_width, frame_height)
+    systems['events'] = GameEvents()
+    print("[OK] Grid overlay initialized")
+    print_grid_info(systems['grid'])
     
     if settings.is_elixir_enabled():
         systems['elixir'] = ElixirDisplay()
@@ -125,7 +125,7 @@ def main():
     # Print feature status
     print("\n" + "-" * 80)
     print("FEATURES ENABLED:")
-    print(f"  Grid Overlay: {settings.is_grid_enabled()}")
+    print(f"  Grid Overlay: {settings.get_grid_opacity() * 100:.0f}%")
     print(f"  Elixir Tracking: {settings.is_elixir_enabled()}")
     print(f"  Tower Detection: {settings.is_towers_enabled() and systems['towers'] is not None}")
     print("-" * 80)
@@ -138,7 +138,7 @@ def main():
     
     frame_count = 0
     last_state = {
-        'grid': settings.is_grid_enabled(),
+        'grid_opacity': settings.get_grid_opacity(),
         'elixir': settings.is_elixir_enabled(),
         'towers': settings.is_towers_enabled()
     }
@@ -150,7 +150,7 @@ def main():
             
             # Check if feature states have changed
             current_state = {
-                'grid': settings.is_grid_enabled(),
+                'grid_opacity': settings.get_grid_opacity(),
                 'elixir': settings.is_elixir_enabled(),
                 'towers': settings.is_towers_enabled()
             }
@@ -158,7 +158,7 @@ def main():
             if current_state != last_state:
                 print("\n[INFO] Feature state changed, reinitializing systems...")
                 systems = initialize_systems(frame_w, frame_h, settings)
-                print(f"  Grid: {current_state['grid']}")
+                print(f"  Grid Opacity: {current_state['grid_opacity'] * 100:.0f}%")
                 print(f"  Elixir: {current_state['elixir']}")
                 print(f"  Towers: {current_state['towers']}")
                 last_state = current_state.copy()
@@ -169,10 +169,13 @@ def main():
             
             display_frame = screenshot.copy()
             
-            # Apply grid overlay
+            # Apply grid overlay with opacity
             if systems['grid']:
                 apply_event_to_overlay(systems['grid'], systems['events'])
-                display_frame = systems['grid'].draw_overlay(display_frame)
+                grid_frame = systems['grid'].draw_overlay(display_frame.copy())
+                opacity = settings.get_grid_opacity()
+                # Blend grid frame with original based on opacity (100% = fully opaque grid)
+                display_frame = cv2.addWeighted(grid_frame, opacity, display_frame, 1 - opacity, 0)
             
             # Apply tower detection
             if systems['towers']:
