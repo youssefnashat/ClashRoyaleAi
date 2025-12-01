@@ -107,12 +107,13 @@ def main():
     if screenshot is None:
         print("Error: Could not capture screenshot.")
         return
-    
-    frame_h, frame_w = screenshot.shape[:2]
-    print(f"[OK] Frame size: {frame_w}x{frame_h}")
-    
-    # Initialize all systems
-    systems = initialize_systems(frame_w, frame_h, settings)
+    else:
+        # frame_h, frame_w = screenshot.shape[:2]
+        # print(f"[OK] Frame size: {frame_w}x{frame_h}")
+        frame_h, frame_w = 1920, 1080 # Fallback for debug
+        
+        # Initialize all systems
+        systems = initialize_systems(frame_w, frame_h, settings)
     
     last_card_check = time.time()
     frame_count = 0
@@ -135,13 +136,6 @@ def main():
             }
             
             if current_state != last_state:
-                # Re-init systems if needed (though ideally we'd just toggle them)
-                # For now, we'll just update the existing systems or re-create if simple
-                # Re-creating might be heavy, but let's stick to the pattern for now
-                # Actually, let's just update the flags we can, or re-init if critical
-                # The original code re-initialized. Let's keep it safe.
-                # BUT, re-initializing HandTracker is expensive (loads model). 
-                # Let's preserve hand tracker if possible.
                 old_hand = systems.get('hand')
                 systems = initialize_systems(frame_w, frame_h, settings)
                 if old_hand:
