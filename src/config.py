@@ -1,7 +1,9 @@
 # Configuration for Clash Royale Match Analyzer
 import os
+import json
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
 # Window Capture Settings
@@ -9,7 +11,9 @@ WINDOW_NAME_PATTERNS = ["Android Device", "BlueStacks", "LDPlayer", "MuMu"]
 RESIZE_WIDTH = 450
 RESIZE_HEIGHT = 800
 
-import json
+# Model IDs for detection
+TROOP_MODEL_ID = os.getenv("TROOP_MODEL_ID", "clash-royale-xy2jw/2")
+CARD_MODEL_ID = os.getenv("HAND_CARDS_MODEL_ID", "clash-cards-vt0gf/1")
 
 # Load display configuration from unified config file
 def _load_display_config():
@@ -51,6 +55,11 @@ ARENA_ROI = (20, 100, 410, 500)
 MATCH_CONFIDENCE = 0.8
 DEBOUNCE_TIME = 3.0  # Seconds to ignore the same card
 
+# Feature Flags
+ENABLE_TOWER_DETECTION = False  # Set to True to enable tower detection visualization
+ENABLE_GRID_OVERLAY = True  # Set to True to show grid overlay
+ENABLE_ELIXIR_TRACKING = True  # Set to True to show elixir tracking
+
 # Elixir Logic
 ELIXIR_RECOVERY_RATE_SINGLE = 0.35  # Elixir per second
 ELIXIR_RECOVERY_RATE_DOUBLE = 0.7
@@ -71,7 +80,3 @@ PURPLE_UPPER = (175, 255, 255)
 # Grid Overlay Configuration
 GRID_CONFIG_FILE = "grid_config.json"
 SHADED_TILES_FILE = "shaded_tiles.json"
-
-# Roboflow Model IDs
-TROOP_MODEL_ID = os.getenv("TROOP_MODEL_ID", "clash-royale-xy2jw/2")
-CARD_MODEL_ID = os.getenv("CARD_MODEL_ID", "cr-6ydc1/2")

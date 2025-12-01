@@ -106,128 +106,24 @@ class GridOverlay:
     
     GRID_WIDTH = 18
     GRID_HEIGHT = 32
-    GRID_CONFIG_FILE = "display_config.json"
-    SHADED_TILES_FILE = "shaded_tiles.json"
-    
-    # Tile states with BGR colors
-    TILE_STATES = {
-        'red': (0, 0, 255),
-        'leftEnemyDown': (0, 255, 0),
-        'rightEnemyDown': (255, 0, 0),
-        'leftFriendlyDown': (0, 255, 255),
-        'rightFriendlyDown': (255, 0, 255)
-    }
-    
-    def __init__(self, frame_width, frame_height):
-        """Initialize grid overlay with frame dimensions."""
-        self.frame_width = frame_width
-        self.frame_height = frame_height
-        self.tile_width = frame_width / self.GRID_WIDTH
-        self.tile_height = frame_height / self.GRID_HEIGHT
+        # Draw grid lines (only within the scaled grid area)
+        # Calculate grid boundaries
+        grid_left = int(offset_x)
+        grid_top = int(offset_y)
+        grid_right = int(offset_x + self.GRID_WIDTH * scaled_tile_width)
+        grid_bottom = int(offset_y + self.GRID_HEIGHT * scaled_tile_height)
         
-        # Load configuration and tile states from JSON
-        self.grid_config = self._load_grid_config()
-        
-        # Auto-adjust offsets if they're out of bounds for this frame size
-        self._validate_and_adjust_config()
-        
-        self.tile_states = self._load_tile_states()
-    
-    def _validate_and_adjust_config(self):
-        """Validate and adjust config for current frame dimensions."""
-        scale_x = self.grid_config.get('scale_x', 0.85)
-        scale_y = self.grid_config.get('scale_y', 0.67)
-        
-        # Calculate centered X offset based on scale_x only
-        grid_width = self.tile_width * self.GRID_WIDTH * scale_x
-        centered_offset_x = (self.frame_width - grid_width) / 2.0
-        
-        # Keep the custom Y offset if provided, otherwise center
-        current_offset_y = self.grid_config.get('offset_y', 0.0)
-        
-        # Always center horizontally
-        self.grid_config['offset_x'] = centered_offset_x
-        # Keep Y offset as specified (allows vertical translation)
-        self.grid_config['offset_y'] = current_offset_y
-    
-    def _load_grid_config(self):
-        """Load grid scale and offset from display_config.json."""
-        default_config = {
-            'scale_x': 0.85,
-            'scale_y': 0.67,
-            'offset_x': 96.0,
-            'offset_y': 88.0
-        }
-        
-        if os.path.exists(self.GRID_CONFIG_FILE):
-            try:
-                with open(self.GRID_CONFIG_FILE, 'r') as f:
-                    config_data = json.load(f)
-                    # Check if it's the new format (nested under 'grid')
-                    if 'grid' in config_data:
-                        return config_data['grid']
-                    # Fallback for old format or direct keys
-                    return config_data if 'scale_x' in config_data else default_config
-            except:
-                return default_config
-        return default_config
-    
-    def _load_tile_states(self):
-        """Load tile states from shaded_tiles.json."""
-        if os.path.exists(self.SHADED_TILES_FILE):
-            try:
-                with open(self.SHADED_TILES_FILE, 'r') as f:
-                    data = json.load(f)
-                    states = {}
-                    for key, value in data.items():
-                        tile_tuple = tuple(map(int, key.split(',')))
-                        states[tile_tuple] = value
-                    return states
-            except:
-                return {}
-        return {}
-    
-    def draw_overlay(self, frame):
-        """
-        Draw grid overlay on frame with shaded tiles.
-        
-        Args:
-            frame (np.ndarray): Input frame (BGR format)
-        
-        Returns:
-            np.ndarray: Frame with grid overlay applied
-        """
-        overlay = frame.copy()
-        
-        # Get scale and offset from config
-        scale_x = self.grid_config.get('scale_x', 0.85)
-        scale_y = self.grid_config.get('scale_y', 0.85)
-        offset_x = self.grid_config.get('offset_x', 0.0)
-        offset_y = self.grid_config.get('offset_y', 0.0)
-        
-        scaled_tile_width = self.tile_width * scale_x
-        scaled_tile_height = self.tile_height * scale_y
-        
-        # Draw shaded tiles
-        for (tile_x, tile_y), state in self.tile_states.items():
-            color = self.TILE_STATES.get(state, (0, 0, 255))
-            x1 = int(offset_x + tile_x * scaled_tile_width)
-            y1 = int(offset_y + tile_y * scaled_tile_height)
-            x2 = int(offset_x + (tile_x + 1) * scaled_tile_width)
-            y2 = int(offset_y + (tile_y + 1) * scaled_tile_height)
-            cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
-        
-        # Draw grid lines
+        # Draw vertical lines
         for col in range(self.GRID_WIDTH + 1):
             x = int(offset_x + col * scaled_tile_width)
-            if 0 <= x < self.frame_width:
-                cv2.line(overlay, (x, 0), (x, self.frame_height), (0, 255, 0), 1)
+            if grid_left <= x <= grid_right:
+                cv2.line(overlay, (x, grid_top), (x, grid_bottom), (255, 255, 255), 1)
         
+        # Draw horizontal lines
         for row in range(self.GRID_HEIGHT + 1):
             y = int(offset_y + row * scaled_tile_height)
-            if 0 <= y < self.frame_height:
-                cv2.line(overlay, (0, y), (self.frame_width, y), (0, 255, 0), 1)
+            if grid_top <= y <= grid_bottom:
+                cv2.line(overlay, (grid_left, y), (grid_right, y), (255, 255, 255), 1)
         
-        # Blend with original frame (33% opacity)
-        result = cv2.addWeighted(overlay, 0.33, frame, 0.67, 0)
-        return result
+        # Return overlay without blending (opacity controlled by main.py slider)
+        return overlay

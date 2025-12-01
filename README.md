@@ -10,6 +10,8 @@ Real-time Clash Royale detection using **Roboflow Machine Learning** instead of 
 - ✅ **Elixir tracking** (opponent elixir estimation)
 - ✅ **Card cycle tracking** (infers opponent deck and hand)
 - ✅ **Real-time dashboard** showing detections and game state
+- ✅ **Grid Overlay** - Interactive 18×32 arena grid with adjustable opacity
+- ✅ **Tower Detection** - ML-based princess tower detection
 
 ## Prerequisites
 
@@ -42,6 +44,8 @@ pip install -r requirements.txt
    ```env
    ROBOFLOW_API_KEY=your_api_key_here
    ROBOFLOW_MODEL_ID=clash-royale-xy2jw/2
+   TROOP_MODEL_ID=clash-royale-xy2jw/2
+   HAND_CARDS_MODEL_ID=clash-cards-vt0gf/1
    ```
 
    **Get your API key:**
@@ -59,76 +63,51 @@ pip install -r requirements.txt
    python main.py
    ```
 
-3. **What you'll see:**
-   ```
-   ==================================================
-   CLASH ROYALE AI - ROBOFLOW EDITION
-   ==================================================
-
-   Frame: 245
-   Opponent Elixir: 7.3 / 10.0
-
-   --- ACTIVE DETECTIONS ---
-     • Hog Rider (0.92)
-     • Knight (0.88)
-
-   --- KNOWN OPPONENT CARDS ---
-     4/8 cards discovered:
-     • Fireball
-     • Hog Rider
-     • Knight
-     • Musketeer
-
-   Press Ctrl+C to quit
-   ==================================================
-   ```
-
-4. **To stop:** Press `Ctrl+C`
+3. **Controls:**
+   - **Settings Window**: Adjust features in real-time
+     - Grid Overlay: 0-100% opacity slider
+     - Elixir Tracking: On/Off toggle
+     - Tower Detection: On/Off toggle
+   - **Close Application**: Press `Q` in the game overlay window or click X on settings window
 
 ## How It Works
 
 ### Detection Pipeline
 1. **Capture** - Grabs frames from the emulator window
-2. **Detect** - Runs Roboflow ML inference
+2. **Detect** - Runs Roboflow ML inference (Troops & Hand Cards)
 3. **Track** - Updates elixir and card cycle
-4. **Display** - Prints dashboard every 2 seconds
+4. **Display** - Overlays information on the game stream
 
 ### Elixir Tracking
 - Starts at 5.0 elixir
 - Regenerates at 0.35/sec (0.70/sec in double elixir)
 - Deducts costs when cards are detected
-- Uses comprehensive card cost database
 
 ### Duplicate Prevention
 - Tracks recently detected cards (position + time)
 - Prevents counting the same troop multiple times
 - 3-second debounce window
-- 50-pixel position threshold
 
-## Files
+## Project Structure
 
 ```
 src/
-├── capture.py       # Window capture logic
-├── config.py        # Settings
-├── detector.py      # Roboflow ML wrapper
-└── state_manager.py # Elixir + cycle tracking
-
-main.py              # Main application
-.env                 # API credentials (create from .env.example)
+  ├── main.py                    # Application orchestrator
+  ├── capture.py                 # Game window capture
+  ├── config.py                  # Configuration & feature flags
+  ├── vision.py                  # Grid overlay rendering
+  ├── elixir_tracker_module.py   # Elixir detection & display
+  ├── tower_display.py           # Tower detection wrapper
+  ├── detector.py                # Roboflow API integration
+  ├── hand_tracker.py            # Hand card detection
+  ├── state_manager.py           # Tower state tracking
+  ├── settings_window.py         # Settings UI
+  ├── events.py                  # Keyboard event handling
+  └── __pycache__/
+assets/
+  ├── cards_raw/                 # Card image assets
+  └── shaded_tiles.json          # Grid tile state definitions
 ```
-
-## Configuration
-
-Edit `src/config.py`:
-- `WINDOW_NAME_PATTERNS` - Emulator window titles to search for
-- `DETECTION_CONFIDENCE_THRESHOLD` - Minimum confidence (default: 0.5)
-- `FPS_TARGET` - Target detection rate (default: 20 FPS)
-
-Edit `src/state_manager.py`:
-- `ELIXIR_REGEN_SINGLE` - Normal elixir regeneration (default: 0.35/sec)
-- `duplicate_threshold` - Position similarity threshold (default: 50px)
-- `debounce_time` - Duplicate prevention window (default: 3.0sec)
 
 ## Troubleshooting
 
@@ -143,30 +122,7 @@ Edit `src/state_manager.py`:
 ### Low Accuracy
 - Increase `DETECTION_CONFIDENCE_THRESHOLD` in `config.py`
 - Check your Roboflow model's performance metrics
-- Ensure emulator is in Portrait mode with good quality
 
-### High CPU Usage
-- Decrease `FPS_TARGET` in `config.py`
-- Add delay in main loop (`time.sleep()`)
+## License
 
-## Next Steps
-
-- Train your own Roboflow model for better accuracy
-- Add visualization (draw bounding boxes on screen)
-- Implement double elixir mode detection
-- Add logging and metrics
-
-## Model Training Tips
-
-If you want to train your own model:
-1. Collect screenshots from matches
-2. Annotate troops/buildings/spells in Roboflow
-3. Use at least 200-300 images per class
-4. Test with data augmentation
-5. Export as "Object Detection" model
-
-
-
-## TO DO:
-
-Add The other roboflow workflow that detects the cards. SPlit the hand into 4 differnert images and analyze each image then write the name of every card in the hand. WIth that info later on we can determine which cards to place based on the elxiir but for now just want a lis of the cards in the hand. 
+This project is part of the ClashRoyaleAi repository.
