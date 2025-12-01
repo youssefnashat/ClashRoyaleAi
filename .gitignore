@@ -13,3 +13,4 @@ venv/
 
 # Project specific
 .env
+display_config.json
