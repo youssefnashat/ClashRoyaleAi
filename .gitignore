@@ -1,6 +1,15 @@
-﻿venv/
+# Git ignore patterns for ClashRoyaleAi
+
+# Python
 __pycache__/
 *.pyc
-.DS_Store
+venv/
+
+# IDE
 .vscode/
+
+# OS
+.DS_Store
+
+# Project specific
 .env
